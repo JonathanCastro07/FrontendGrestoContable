@@ -1,0 +1,107 @@
+<div class="movimientos-container">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <h1>GestroContable</h1>
+    <div class="nav-links">
+      <a routerLink="/panel">← Panel</a>
+      <a routerLink="/ver-movimientos">📊 Ver Movimientos</a>
+    </div>
+  </nav>
+
+  <!-- Contenido -->
+  <div class="content">
+
+    <div class="header">
+      <h2>Movimientos — {{ negocios[0]?.nombreNegocio }}</h2>
+      <button class="btn-nuevo" (click)="mostrarFormulario = !mostrarFormulario">
+        + Nuevo Movimiento
+      </button>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+    <div class="exito-message" *ngIf="exito">{{ exito }}</div>
+
+    <!-- Formulario -->
+    <div class="formulario" *ngIf="mostrarFormulario">
+      <h3>Registrar Movimiento</h3>
+
+      <div class="form-group">
+        <label>Monto</label>
+        <input type="number" [(ngModel)]="nuevoMovimiento.monto" placeholder="0"/>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha y hora</label>
+        <input type="datetime-local" [(ngModel)]="nuevoMovimiento.fecha"/>
+      </div>
+
+      <div class="form-group">
+        <label>Descripción</label>
+        <input type="text" [(ngModel)]="nuevoMovimiento.descripcion" placeholder="Descripción del movimiento"/>
+      </div>
+
+<!-- Tipo de Movimiento -->
+<div class="form-group">
+  <label>Tipo de Movimiento</label>
+  <select [(ngModel)]="tipoNombre" (change)="onTipoChange()">
+    <option value="">-- Selecciona --</option>
+    <option value="INGRESO">Ingreso</option>
+    <option value="EGRESO">Egreso</option>
+    <option value="GASTO">Gasto</option>
+  </select>
+</div>
+
+<!-- Naturaleza -->
+<div class="form-group" *ngIf="tipoNombre">
+  <label>Naturaleza</label>
+  <select [(ngModel)]="naturaleza">
+    <option value="">-- Selecciona --</option>
+    <option value="DEBITO">Débito</option>
+    <option value="CREDITO">Crédito</option>
+  </select>
+</div>
+
+      <!-- Origen — aparece al seleccionar tipo -->
+      <div class="form-group" *ngIf="nuevoMovimiento.tipoMovimiento?.nombre">
+        <label>Nombre del Origen</label>
+       <input type="text" [(ngModel)]="origenNombre" 
+              (input)="nuevoMovimiento.origen!.nombre = origenNombre"
+                 placeholder="Ej: Proveedor Juan"/>
+      </div>
+
+      <!-- Tipo Origen — aparece cuando hay nombre de origen -->
+      <div class="form-group" *ngIf="nuevoMovimiento.origen?.nombre">
+        <label>Tipo de Origen</label>
+        <select [(ngModel)]="nuevoMovimiento.origen!.tipoOrigen">
+          <option value="">-- Selecciona --</option>
+          <option value="PROVEEDOR">Proveedor</option>
+          <option value="TRABAJADOR">Trabajador</option>
+          <option value="SERVICIO_PUBLICO">Servicio Público</option>
+          <option value="FACTURA">Factura</option>
+          <option value="CLIENTE">Cliente</option>
+          <option value="OTRO">Otro</option>
+        </select>
+      </div>
+
+      <!-- Descripción del origen -->
+      <div class="form-group" *ngIf="nuevoMovimiento.origen?.tipoOrigen">
+        <label>Descripción del Origen</label>
+        <input type="text" [(ngModel)]="nuevoMovimiento.origen!.descripcion"
+               placeholder="Descripción adicional"/>
+      </div>
+
+      <div class="form-buttons">
+        <button class="btn-guardar" (click)="registrar()">Guardar</button>
+        <button class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Sin movimientos -->
+    <div class="sin-movimientos" *ngIf="movimientos.length === 0 && idNegocioSeleccionado">
+      <p>No hay movimientos registrados para este negocio.</p>
+    </div>
+
+  </div>
+</div>

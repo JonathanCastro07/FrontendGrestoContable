@@ -1,0 +1,80 @@
+<div class="negocios-container">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <h1>GestroContable</h1>
+    <div class="nav-links">
+      <a routerLink="/dashboard">Dashboard</a>
+      <a routerLink="/movimientos">Movimientos</a>
+    </div>
+  </nav>
+
+  <!-- Contenido -->
+  <div class="content">
+
+    <div class="header">
+      <h2>Mis Negocios</h2>
+<button class="btn-nuevo" *ngIf="!tieneNegocio"
+  (click)="mostrarFormulario = !mostrarFormulario">
+  + Nuevo Negocio
+</button>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+    <div class="exito-message" *ngIf="exito">{{ exito }}</div>
+
+    <!-- Formulario -->
+    <div class="formulario" *ngIf="mostrarFormulario">
+      <h3>Crear Negocio</h3>
+
+      <div class="form-group">
+        <label>Nombre del Negocio</label>
+        <input type="text" [(ngModel)]="nuevoNegocio.nombreNegocio" placeholder="Nombre del negocio"/>
+      </div>
+
+<div class="form-group">
+  <label>Tipo de Actividad</label>
+  <select [(ngModel)]="nuevoNegocio.tipoActividad">
+    <option value="">-- Selecciona --</option>
+    <option value="Comercio">Comercio</option>
+    <option value="Servicios">Servicios</option>
+    <option value="Manufactura">Manufactura</option>
+    <option value="Restaurante">Restaurante</option>
+    <option value="Tecnología">Tecnología</option>
+    <option value="Educación">Educación</option>
+    <option value="Salud">Salud</option>
+    <option value="Otro">Otro</option>
+  </select>
+</div>
+
+      <div class="form-group">
+        <label>Capital Inicial</label>
+        <input type="number" [(ngModel)]="nuevoNegocio.capitalInicial" placeholder="0"/>
+      </div>
+
+      <div class="form-buttons">
+        <button class="btn-guardar" (click)="crear()">Guardar</button>
+        <button class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Lista de negocios -->
+    <div class="negocios-grid">
+      <div class="negocio-card" *ngFor="let negocio of negocios">
+        <h3>{{ negocio.nombreNegocio }}</h3>
+        <p><strong>Actividad:</strong> {{ negocio.tipoActividad }}</p>
+        <p><strong>Capital inicial:</strong> ${{ negocio.capitalInicial }}</p>
+        <div class="card-buttons">
+          <button class="btn-eliminar" (click)="eliminar(negocio.idNegocio)">Eliminar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sin negocios -->
+    <div class="sin-negocios" *ngIf="negocios.length === 0">
+      <p>No tienes negocios registrados aún.</p>
+    </div>
+
+  </div>
+</div>

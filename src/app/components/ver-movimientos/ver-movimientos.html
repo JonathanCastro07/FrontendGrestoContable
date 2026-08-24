@@ -1,0 +1,114 @@
+<div class="ver-movimientos-container">
+
+
+  <nav class="navbar">
+    <h1>GestroContable</h1>
+    <div class="nav-links">
+      <a routerLink="/panel">← Panel</a>
+      <a routerLink="/movimientos">+ Registrar</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <div class="header">
+      <h2>Movimientos — {{ negocios[0]?.nombreNegocio }}</h2>
+    </div>
+
+
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+    <div class="exito-message" *ngIf="exito">{{ exito }}</div>
+
+
+    <div class="formulario" *ngIf="mostrarEditar && movimientoEditando">
+      <h3>Editar Movimiento</h3>
+
+      <div class="form-group">
+        <label>Monto</label>
+        <input type="number" [(ngModel)]="movimientoEditando.monto"/>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha y hora</label>
+        <input type="datetime-local" [(ngModel)]="movimientoEditando.fecha"/>
+      </div>
+
+      <div class="form-group">
+        <label>Descripción</label>
+        <input type="text" [(ngModel)]="movimientoEditando.descripcion"/>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo de Movimiento</label>
+        <select [(ngModel)]="tipoNombreEditar">
+          <option value="">-- Selecciona --</option>
+          <option value="INGRESO">Ingreso</option>
+          <option value="EGRESO">Egreso</option>
+          <option value="GASTO">Gasto</option>
+        </select>
+      </div>
+
+      <div class="form-group" *ngIf="tipoNombreEditar">
+        <label>Naturaleza</label>
+        <select [(ngModel)]="naturalezaEditar">
+          <option value="">-- Selecciona --</option>
+          <option value="DEBITO">Débito</option>
+          <option value="CREDITO">Crédito</option>
+        </select>
+      </div>
+
+      <div class="form-buttons">
+        <button class="btn-guardar" (click)="guardarEdicion()">Guardar</button>
+        <button class="btn-cancelar" (click)="cancelarEdicion()">Cancelar</button>
+      </div>
+    </div>
+
+
+    <div class="buscador">
+      <input type="text" [(ngModel)]="busqueda"
+             (input)="buscar()"
+             placeholder="🔍 Buscar por descripción, tipo, origen o monto..."/>
+    </div>
+
+
+    <div class="movimientos-lista" *ngIf="movimientosFiltrados.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha y hora</th>
+            <th>Descripción</th>
+            <th>Tipo</th>
+            <th>Naturaleza</th>
+            <th>Origen</th>
+            <th>Monto</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let movimiento of movimientosFiltrados">
+            <td>{{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ movimiento.descripcion }}</td>
+            <td>{{ movimiento.tipoMovimiento?.nombre }}</td>
+            <td>{{ movimiento.tipoMovimiento?.naturaleza }}</td>
+            <td>{{ movimiento.origen?.nombre }}</td>
+            <td>${{ movimiento.monto }}</td>
+            <td>
+              <button class="btn-editar" (click)="editarMovimiento(movimiento)">
+                Editar
+              </button>
+              <button class="btn-eliminar" (click)="eliminar(movimiento.idMovimiento)">
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+
+    <div class="sin-movimientos" *ngIf="movimientosFiltrados.length === 0">
+      <p>No hay movimientos registrados.</p>
+    </div>
+
+  </div>
+</div>

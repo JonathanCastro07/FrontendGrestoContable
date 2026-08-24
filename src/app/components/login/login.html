@@ -1,0 +1,39 @@
+<div class="login-container"> 
+    <div  class="login-box">
+
+        <h2>GestroContable</h2>
+        <p class="subtitle">Inicia sesion en tu cuenta</p>
+
+        <div class="error-message" *ngIf="error">
+            {{error}}
+        </div>
+
+        <div class="form-group">
+            <label>Correo</label>
+            <input 
+            type="email"
+            [(ngModel)]="correo"
+            placeholder="tucorreo@gmail.com"
+            />
+        </div>
+
+        <div class="form-group">
+            <label>Contraseña</label>
+            <input 
+            type="password"
+            [(ngModel)]="password"
+            placeholder="••••••••"
+            />
+        </div>
+
+        <button class="btn-login" (click)="iniciarSesion()">
+            Inicia Sesion
+        </button>
+
+        <p class="rregistro-link">
+            ¿No tines cuenta?
+            <a routerLink="/registro">Registrate aqui</a>
+        </p>
+
+    </div>
+</div>

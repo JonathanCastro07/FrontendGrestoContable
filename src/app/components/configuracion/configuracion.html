@@ -1,0 +1,96 @@
+<div class="config-container">
+
+
+  <nav class="navbar">
+    <h1>GestroContable</h1>
+    <div class="nav-links">
+      <a routerLink="/panel">← Panel</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <h2>Configuración</h2>
+
+
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+    <div class="exito-message" *ngIf="exito">{{ exito }}</div>
+
+
+    <div class="tabs">
+      <button [class.active]="seccionActiva === 'correo'"
+              (click)="cambiarSeccion('correo')">
+        📧 Cambiar Correo
+      </button>
+      <button [class.active]="seccionActiva === 'password'"
+              (click)="cambiarSeccion('password')">
+        🔑 Cambiar Contraseña
+      </button>
+      <button [class.active]="seccionActiva === 'negocio'"
+              (click)="cambiarSeccion('negocio')">
+        🏢 Mi Negocio
+      </button>
+    </div>
+
+
+    <div class="seccion" *ngIf="seccionActiva === 'correo'">
+      <h3>Cambiar Correo</h3>
+      <p class="actual">Correo actual: <strong>{{ usuario?.correo }}</strong></p>
+
+      <div class="form-group">
+        <label>Nuevo Correo</label>
+        <input type="email" [(ngModel)]="nuevoCorreo" placeholder="nuevocorreo@gmail.com"/>
+      </div>
+
+      <div class="form-group">
+        <label>Confirmar Correo</label>
+        <input type="email" [(ngModel)]="confirmarCorreo" placeholder="nuevocorreo@gmail.com"/>
+      </div>
+
+      <button class="btn-guardar" (click)="cambiarCorreo()">Guardar Correo</button>
+    </div>
+
+
+    <div class="seccion" *ngIf="seccionActiva === 'password'">
+      <h3>Cambiar Contraseña</h3>
+
+      <div class="form-group">
+        <label>Contraseña Actual</label>
+        <input type="password" [(ngModel)]="passwordActual" placeholder="••••••••"/>
+      </div>
+
+      <div class="form-group">
+        <label>Nueva Contraseña</label>
+        <input type="password" [(ngModel)]="nuevaPassword" placeholder="••••••••"/>
+      </div>
+
+      <div class="form-group">
+        <label>Confirmar Nueva Contraseña</label>
+        <input type="password" [(ngModel)]="confirmarPassword" placeholder="••••••••"/>
+      </div>
+
+      <button class="btn-guardar" (click)="cambiarPassword()">Guardar Contraseña</button>
+    </div>
+
+
+    <div class="seccion" *ngIf="seccionActiva === 'negocio'">
+      <h3>Mi Negocio</h3>
+
+      <div class="negocio-info">
+        <p><strong>Nombre:</strong> {{ negocio?.nombreNegocio }}</p>
+        <p><strong>Actividad:</strong> {{ negocio?.tipoActividad }}</p>
+        <p><strong>Capital Inicial:</strong> ${{ negocio?.capitalInicial }}</p>
+        <p><strong>Rol:</strong> {{ negocio?.rolPropietario }}</p>
+      </div>
+
+      <div class="zona-peligro">
+        <h4>⚠️ Zona de Peligro</h4>
+        <p>Si borras tu negocio perderás todos los movimientos asociados.</p>
+        <button class="btn-borrar" (click)="borrarNegocio()">
+          🗑️ Borrar Negocio
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

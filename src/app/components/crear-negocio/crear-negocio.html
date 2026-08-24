@@ -1,0 +1,55 @@
+<div class="crear-container">
+  <div class="crear-box">
+
+    <div class="crear-header">
+      <h1>GestroContable</h1>
+      <p>Antes de continuar, registra tu negocio</p>
+    </div>
+
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+
+
+    <div class="form-group">
+      <label>Nombre del Negocio</label>
+      <input type="text" [(ngModel)]="negocio.nombreNegocio"
+             placeholder="Ej: Tienda La Esperanza"/>
+    </div>
+
+    <div class="form-group">
+      <label>Tipo de Actividad</label>
+      <select [(ngModel)]="negocio.tipoActividad">
+        <option value="">-- Selecciona --</option>
+        <option value="Comercio">Comercio</option>
+        <option value="Servicios">Servicios</option>
+        <option value="Manufactura">Manufactura</option>
+        <option value="Restaurante">Restaurante</option>
+        <option value="Tecnología">Tecnología</option>
+        <option value="Educación">Educación</option>
+        <option value="Salud">Salud</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>¿Cuál es tu rol en el negocio?</label>
+      <select [(ngModel)]="negocio.rolPropietario">
+        <option value="">-- Selecciona --</option>
+        <option value="Propietario">Propietario</option>
+        <option value="Administrador">Administrador</option>
+        <option value="Contador">Contador</option>
+        <option value="Socio">Socio</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Capital Inicial</label>
+      <input type="number" [(ngModel)]="negocio.capitalInicial"
+             placeholder="0"/>
+    </div>
+
+    <button class="btn-crear" (click)="crear()">
+      Crear Negocio
+    </button>
+
+  </div>
+</div>

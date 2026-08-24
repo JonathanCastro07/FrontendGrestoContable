@@ -1,0 +1,116 @@
+<div class="panel-container">
+
+
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <h1>GestroContable</h1>
+      <span class="negocio-nombre">{{ negocio?.nombreNegocio }}</span>
+    </div>
+    <div class="navbar-menu">
+      <a routerLink="/configuracion" class="nav-item">
+        ⚙️ Configuración
+      </a>
+      <div class="nav-item usuario-info">
+        👤 {{ usuario?.nombre }}
+      </div>
+      <button class="btn-cerrar" (click)="cerrarSesion()">
+        Cerrar Sesión
+      </button>
+    </div>
+  </nav>
+
+  <div class="content">
+
+
+    <div class="bienvenida">
+      <h2>Bienvenido, {{ usuario?.nombre }} 👋</h2>
+      <p>Aquí tienes el resumen de tu negocio</p>
+    </div>
+
+    <div class="cards-grid">
+      <div class="info-card">
+        <div class="card-icon">🏢</div>
+        <div class="card-info">
+          <span class="card-label">Negocio</span>
+          <span class="card-value">{{ negocio?.nombreNegocio }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="card-icon">📋</div>
+        <div class="card-info">
+          <span class="card-label">Actividad</span>
+          <span class="card-value">{{ negocio?.tipoActividad }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="card-icon">👔</div>
+        <div class="card-info">
+          <span class="card-label">Rol</span>
+          <span class="card-value">{{ negocio?.rolPropietario }}</span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="card-icon">💵</div>
+        <div class="card-info">
+          <span class="card-label">Capital Inicial</span>
+          <span class="card-value">${{ negocio?.capitalInicial }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="resumen-section" *ngIf="resumen !== null">
+      <h3>Resumen Financiero</h3>
+      <div class="resumen-grid">
+
+        <div class="resumen-card ingresos">
+          <div class="resumen-icon">📈</div>
+          <div class="resumen-info">
+            <span class="resumen-label">Total Ingresos</span>
+            <span class="resumen-valor">${{ resumen.totalIngresos }}</span>
+          </div>
+        </div>
+
+        <div class="resumen-card egresos">
+          <div class="resumen-icon">📉</div>
+          <div class="resumen-info">
+            <span class="resumen-label">Total Egresos</span>
+            <span class="resumen-valor">${{ resumen.totalEgreso }}</span>
+          </div>
+        </div>
+
+        <div class="resumen-card gastos">
+          <div class="resumen-icon">💸</div>
+          <div class="resumen-info">
+            <span class="resumen-label">Total Gastos</span>
+            <span class="resumen-valor">${{ resumen.totalGasto }}</span>
+          </div>
+        </div>
+
+        <div class="resumen-card utilidad">
+          <div class="resumen-icon">💰</div>
+          <div class="resumen-info">
+            <span class="resumen-label">Utilidad</span>
+            <span class="resumen-valor">${{ resumen.utilidad }}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <div class="acciones">
+      <h3>Acciones Rápidas</h3>
+      <div class="acciones-grid">
+        <div class="accion-card" routerLink="/movimientos">
+          <div class="accion-icon">💰</div>
+          <span>Registrar Movimiento</span>
+        </div>
+        <div class="accion-card" routerLink="/ver-movimientos">
+          <div class="accion-icon">📊</div>
+          <span>Ver Movimientos</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
