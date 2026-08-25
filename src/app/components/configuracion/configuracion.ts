@@ -13,6 +13,8 @@ import { Negocio } from '../../models/negocio';
   templateUrl: './configuracion.html',
   styleUrl: './configuracion.scss',
 })
+
+// hola desde java 
 export class Configuracion implements OnInit {
 
   usuario: Usuario | null = null;
