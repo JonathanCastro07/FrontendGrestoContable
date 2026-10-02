@@ -6,8 +6,25 @@ import { MovimientoService } from '../../services/MovimientoService';
 import { NegocioService } from '../../services/NegocioService';
 import { TipoMovimientoService } from '../../services/Tipo-movimientoService';
 import { OrigenService } from '../../services/OrigenService';
-import { Movimiento } from '../../models/movimiento';
-import { Negocio } from '../../models/negocio';
+import { PeriodoService } from '../../services/PeriodoService';
+import { Observable, of, switchMap } from 'rxjs';
+import { map } from 'rxjs/operators';
+import {
+  MovimientoFinancieroRequest,
+  MovimientoFinancieroResponse,
+} from '../../models/movimiento';
+import { NegocioResponse } from '../../models/negocio';
+import { OrigenRequest, TipoOrigen } from '../../models/origen';
+import {
+  NaturalezaMovimiento,
+  TipoMovimientoRequest,
+} from '../../models/tipo-movimiento';
+
+// el backend guarda el mes como JANUARY, FEBRUARY... (así lo hace ejecutarPago)
+const MESES = [
+  'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+  'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+];
 
 @Component({
   selector: 'app-movimientos',
@@ -17,27 +34,31 @@ import { Negocio } from '../../models/negocio';
 })
 export class Movimientos implements OnInit {
 
-  movimientos: Movimiento[] = [];
-  negocios: Negocio[] = [];
+  movimientos: MovimientoFinancieroResponse[] = [];
+  negocios: NegocioResponse[] = [];
 
-  nuevoMovimiento: Movimiento = {
+  nuevoMovimiento: MovimientoFinancieroRequest = {
     monto: 0,
     fecha: '',
-    descripcion: '',
-    tipoMovimiento: { nombre: '', naturaleza: '' },
-    origen: { nombre: '', tipoOrigen: '' }
+    descricion: '',
+    negocioId: '',
+    tipoId: '',
+    origenId: '',
+    periodoId: ''
   };
 
   tipoNombre: string = '';
   naturaleza: string = '';
   origenNombre: string = '';
+  origenTipo: TipoOrigen | '' = '';
 
-  idNegocioSeleccionado: number = 0;
+  idNegocioSeleccionado: string = '';
   error: string = '';
   exito: string = '';
   mostrarFormulario: boolean = false;
-  idUsuario: number = 0;
-  movimientoEditando: Movimiento | null = null;
+  idUsuario: string = '';
+  movimientoEditando: MovimientoFinancieroRequest | null = null;
+  idMovimientoEditando: string = '';
   mostrarEditar: boolean = false;
   tipoNombreEditar: string = '';
   naturalezaEditar: string = '';
@@ -46,7 +67,8 @@ export class Movimientos implements OnInit {
     private movimientoService: MovimientoService,
     private negocioService: NegocioService,
     private tipoMovimientoService: TipoMovimientoService,
-    private origenService: OrigenService
+    private origenService: OrigenService,
+    private periodoService: PeriodoService
   ) {}
 
   ngOnInit() {
@@ -63,7 +85,7 @@ export class Movimientos implements OnInit {
       next: (data) => {
         if (data.length > 0) {
           this.negocios = data;
-          this.idNegocioSeleccionado = data[0].idNegocio!;
+          this.idNegocioSeleccionado = data[0].idNegocio;
           this.cargarMovimientos();
         }
       },
@@ -72,21 +94,45 @@ export class Movimientos implements OnInit {
   }
 
   cargarMovimientos() {
-    const id = Number(this.idNegocioSeleccionado);
-    if (!id) return;
-    this.movimientoService.listarPorNegocio(id).subscribe({
+    if (!this.idNegocioSeleccionado) return;
+    this.movimientoService.listarPorNegocio(this.idNegocioSeleccionado).subscribe({
       next: (data) => this.movimientos = data,
       error: () => this.error = 'Error al cargar movimientos'
     });
   }
 
   onTipoChange() {
-    this.nuevoMovimiento.tipoMovimiento = {
-      nombre: this.tipoNombre,
-      naturaleza: ''
-    };
     this.naturaleza = '';
-    this.nuevoMovimiento.origen = { nombre: '', tipoOrigen: '' };
+    this.origenNombre = '';
+    this.origenTipo = '';
+  }
+
+  // el input es datetime-local ("2026-10-01T21:30") pero el backend
+  // espera solo el día, por eso se corta en la T
+  private soloFecha(fecha: string): string {
+    return fecha.split('T')[0];
+  }
+
+  // mismo criterio que ejecutaPago en el backend: busca el periodo del mes
+  // y año, y si no existe lo crea
+  private obtenerOCrearPeriodoId(fecha: string): Observable<string> {
+    const f = new Date(fecha);
+    const anio = f.getFullYear();
+    const mes = MESES[f.getMonth()];
+
+    return this.periodoService.listarTodos().pipe(
+      switchMap((periodos) => {
+        const existe = periodos.find((p) => p.mes === mes && p.anio === anio);
+
+        if (existe) {
+          return of(existe.idPeriodo);
+        }
+
+        return this.periodoService.crear({ mes, anio }).pipe(
+          map((nuevo) => nuevo.idPeriodo)
+        );
+      })
+    );
   }
 
   registrar() {
@@ -98,44 +144,61 @@ export class Movimientos implements OnInit {
       this.error = 'Selecciona la naturaleza del movimiento';
       return;
     }
-    if (!this.nuevoMovimiento.origen?.nombre) {
+    if (!this.origenNombre) {
       this.error = 'Ingresa el nombre del origen';
       return;
     }
-    if (!this.nuevoMovimiento.origen?.tipoOrigen) {
+    if (!this.origenTipo) {
       this.error = 'Selecciona el tipo de origen';
       return;
     }
 
-    this.nuevoMovimiento.tipoMovimiento = {
+    this.nuevoMovimiento.fecha = this.soloFecha(this.nuevoMovimiento.fecha);
+
+    this.obtenerOCrearPeriodoId(this.nuevoMovimiento.fecha).subscribe({
+      next: (periodoId) => {
+        this.nuevoMovimiento.periodoId = periodoId;
+        this.crearMovimientoConTipoYOrigen();
+      },
+      error: () => this.error = 'Error al obtener el periodo'
+    });
+  }
+
+  private crearMovimientoConTipoYOrigen() {
+    const tipo: TipoMovimientoRequest = {
       nombre: this.tipoNombre,
-      naturaleza: this.naturaleza
+      naturaleza: this.naturaleza as NaturalezaMovimiento
     };
 
-    this.tipoMovimientoService.crear(this.nuevoMovimiento.tipoMovimiento!).subscribe({
+    this.tipoMovimientoService.crear(tipo).subscribe({
       next: (tipoGuardado) => {
-        this.origenService.crear(this.nuevoMovimiento.origen!).subscribe({
+        const origen: OrigenRequest = {
+          descripcion: this.origenNombre,
+          tipoOrigen: this.origenTipo as TipoOrigen
+        };
+
+        this.origenService.crear(origen).subscribe({
           next: (origenGuardado) => {
-            this.nuevoMovimiento.tipoMovimiento = tipoGuardado;
-            this.nuevoMovimiento.origen = origenGuardado;
-            this.nuevoMovimiento.negocio = {
-              idNegocio: this.idNegocioSeleccionado,
-              nombreNegocio: '',
-              tipoActividad: '',
-              capitalInicial: 0
-            };
+            this.nuevoMovimiento.negocioId = this.idNegocioSeleccionado;
+            this.nuevoMovimiento.tipoId = tipoGuardado.IdTipo;
+            this.nuevoMovimiento.origenId = origenGuardado.id;
+
             this.movimientoService.registrar(this.nuevoMovimiento).subscribe({
               next: () => {
                 this.exito = 'Movimiento registrado exitosamente';
                 this.mostrarFormulario = false;
                 this.tipoNombre = '';
                 this.naturaleza = '';
+                this.origenNombre = '';
+                this.origenTipo = '';
                 this.nuevoMovimiento = {
                   monto: 0,
                   fecha: '',
-                  descripcion: '',
-                  tipoMovimiento: { nombre: '', naturaleza: '' },
-                  origen: { nombre: '', tipoOrigen: '' }
+                  descricion: '',
+                  negocioId: '',
+                  tipoId: '',
+                  origenId: '',
+                  periodoId: ''
                 };
                 this.cargarMovimientos();
               },
@@ -149,7 +212,7 @@ export class Movimientos implements OnInit {
     });
   }
 
-  eliminar(id: number | undefined) {
+  eliminar(id: string | undefined) {
     if (!id) return;
     this.movimientoService.eliminar(id).subscribe({
       next: () => this.cargarMovimientos(),
@@ -157,54 +220,59 @@ export class Movimientos implements OnInit {
     });
   }
 
-  editarMovimiento(movimiento: Movimiento) {
-  this.movimientoEditando = { ...movimiento };
-  this.tipoNombreEditar = movimiento.tipoMovimiento?.nombre || '';
-  this.naturalezaEditar = movimiento.tipoMovimiento?.naturaleza || '';
-  this.mostrarEditar = true;
-}
-
-guardarEdicion() {
-  if (!this.movimientoEditando) return;
-
-  if (!this.tipoNombreEditar) {
-    this.error = 'Selecciona un tipo de movimiento';
-    return;
-  }
-  if (!this.naturalezaEditar) {
-    this.error = 'Selecciona la naturaleza';
-    return;
+  editarMovimiento(movimiento: MovimientoFinancieroResponse) {
+    this.movimientoEditando = { ...movimiento };
+    this.movimientoEditando.tipoId = movimiento.tipoId;
+    this.movimientoEditando.origenId = movimiento.origenId;
+    this.movimientoEditando.negocioId = movimiento.negocioId;
+    this.movimientoEditando.periodoId = movimiento.periodoId;
+    this.tipoNombreEditar = movimiento.tipoId;
+    this.naturalezaEditar = '';
+    this.mostrarEditar = true;
   }
 
-  this.movimientoEditando.tipoMovimiento = {
-    nombre: this.tipoNombreEditar,
-    naturaleza: this.naturalezaEditar
-  };
+  guardarEdicion() {
+    if (!this.movimientoEditando) return;
 
-  this.tipoMovimientoService.crear(this.movimientoEditando.tipoMovimiento).subscribe({
-    next: (tipoGuardado) => {
-      this.movimientoEditando!.tipoMovimiento = tipoGuardado;
-      this.movimientoService.editar(
-        this.movimientoEditando!.idMovimiento!,
-        this.movimientoEditando!
-      ).subscribe({
-        next: () => {
-          this.exito = 'Movimiento actualizado exitosamente';
-          this.mostrarEditar = false;
-          this.movimientoEditando = null;
-          this.cargarMovimientos();
-        },
-        error: () => this.error = 'Error al editar el movimiento'
-      });
-    },
-    error: () => this.error = 'Error al guardar el tipo'
-  });
-}
+    if (!this.tipoNombreEditar) {
+      this.error = 'Selecciona un tipo de movimiento';
+      return;
+    }
+    if (!this.naturalezaEditar) {
+      this.error = 'Selecciona la naturaleza';
+      return;
+    }
 
-cancelarEdicion() {
-  this.mostrarEditar = false;
-  this.movimientoEditando = null;
-  this.tipoNombreEditar = '';
-  this.naturalezaEditar = '';
-}
+    const tipo: TipoMovimientoRequest = {
+      nombre: this.tipoNombreEditar,
+      naturaleza: this.naturalezaEditar as NaturalezaMovimiento
+    };
+
+    this.tipoMovimientoService.crear(tipo).subscribe({
+      next: (tipoGuardado) => {
+        this.movimientoEditando!.tipoId = tipoGuardado.IdTipo;
+        this.movimientoService.editar(
+          this.idMovimientoEditando,
+          this.movimientoEditando!
+        ).subscribe({
+          next: () => {
+            this.exito = 'Movimiento actualizado exitosamente';
+            this.mostrarEditar = false;
+            this.movimientoEditando = null;
+            this.cargarMovimientos();
+          },
+          error: () => this.error = 'Error al editar el movimiento'
+        });
+      },
+      error: () => this.error = 'Error al guardar el tipo'
+    });
+  }
+
+  cancelarEdicion() {
+    this.mostrarEditar = false;
+    this.movimientoEditando = null;
+    this.idMovimientoEditando = '';
+    this.tipoNombreEditar = '';
+    this.naturalezaEditar = '';
+  }
 }

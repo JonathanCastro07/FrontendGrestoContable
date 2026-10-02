@@ -12,7 +12,7 @@
   <div class="content">
 
     <div class="header">
-      <h2>Movimientos — {{ negocios[0]?.nombreNegocio }}</h2>
+      <h2>Movimientos — {{ negocios[0]?.nombre }}</h2>
     </div>
 
 
@@ -35,7 +35,7 @@
 
       <div class="form-group">
         <label>Descripción</label>
-        <input type="text" [(ngModel)]="movimientoEditando.descripcion"/>
+        <input type="text" [(ngModel)]="movimientoEditando.descricion"/>
       </div>
 
       <div class="form-group">
@@ -87,10 +87,9 @@
         <tbody>
           <tr *ngFor="let movimiento of movimientosFiltrados">
             <td>{{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>{{ movimiento.descripcion }}</td>
-            <td>{{ movimiento.tipoMovimiento?.nombre }}</td>
-            <td>{{ movimiento.tipoMovimiento?.naturaleza }}</td>
-            <td>{{ movimiento.origen?.nombre }}</td>
+            <td>{{ movimiento.descricion }}</td>
+            <td>{{ movimiento.tipoId }}</td>
+            <td>{{ movimiento.origenId }}</td>
             <td>${{ movimiento.monto }}</td>
             <td>
               <button class="btn-editar" (click)="editarMovimiento(movimiento)">
