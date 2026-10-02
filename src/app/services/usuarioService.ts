@@ -1,32 +1,55 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { Usuario } from '../models/usuario';
+import { Observable, finalize, tap } from 'rxjs';
+import { API_URL } from '../config/api';
+import {
+  LoginRequest,
+  LoginResponse,
+  RegistroRequest,
+  UsuarioResponse,
+} from '../models/usuario';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UsuarioService {
-  private apiUrl = 'http://localhost:8080/api/usuario';
+  private apiUrl = `${API_URL}/usuario`;
 
-  constructor(private http: HttpClient){}
+  constructor(private http: HttpClient) {}
 
-  registrar(usuario: Usuario): Observable<Usuario>{
-    return this.http.post<Usuario>(`${this.apiUrl}/registro`, usuario);
+  registrar(registro: RegistroRequest): Observable<UsuarioResponse> {
+    return this.http.post<UsuarioResponse>(`${this.apiUrl}/registro`, registro);
   }
-  login(correo: string, password: string): Observable<Usuario>{
-    return this.http.post<Usuario>(`${this.apiUrl}/login`,{correo, password});
+
+  login(correo: string, password: string): Observable<LoginResponse> {
+    const body: LoginRequest = { correo, password };
+
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, body).pipe(
+      tap((res) => localStorage.setItem('token', res.token))
+    );
   }
-  listar(): Observable<Usuario[]>{
-    return this.http.get<Usuario[]>(this.apiUrl);
+
+  logout(): Observable<void> {
+    // finalize y no tap: si el token ya venció el backend responde 401,
+    // y con finalize el localStorage se limpia igual
+    return this.http.post<void>(`${this.apiUrl}/logout`, null).pipe(
+      finalize(() => localStorage.removeItem('token'))
+    );
   }
-  buscarPorId(id: number): Observable<Usuario>{
-    return this.http.get<Usuario>(`${this.apiUrl}/${id}`);
+
+  listar(): Observable<UsuarioResponse[]> {
+    return this.http.get<UsuarioResponse[]>(this.apiUrl);
   }
-  actualizar(id: number, usuario: Usuario): Observable<Usuario>{
-    return this.http.put<Usuario>(`${this.apiUrl}/${id}`, usuario);
-}
-  eliminar(id: number):Observable<void>{
+
+  buscarPorId(id: string): Observable<UsuarioResponse> {
+    return this.http.get<UsuarioResponse>(`${this.apiUrl}/${id}`);
+  }
+
+  actualizar(id: string, registro: RegistroRequest): Observable<UsuarioResponse> {
+    return this.http.put<UsuarioResponse>(`${this.apiUrl}/${id}`, registro);
+  }
+
+  eliminar(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

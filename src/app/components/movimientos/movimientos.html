@@ -13,7 +13,7 @@
   <div class="content">
 
     <div class="header">
-      <h2>Movimientos — {{ negocios[0]?.nombreNegocio }}</h2>
+      <h2>Movimientos — {{ negocios[0]?.nombre }}</h2>
       <button class="btn-nuevo" (click)="mostrarFormulario = !mostrarFormulario">
         + Nuevo Movimiento
       </button>
@@ -39,7 +39,7 @@
 
       <div class="form-group">
         <label>Descripción</label>
-        <input type="text" [(ngModel)]="nuevoMovimiento.descripcion" placeholder="Descripción del movimiento"/>
+        <input type="text" [(ngModel)]="nuevoMovimiento.descricion" placeholder="Descripción del movimiento"/>
       </div>
 
 <!-- Tipo de Movimiento -->
@@ -64,17 +64,16 @@
 </div>
 
       <!-- Origen — aparece al seleccionar tipo -->
-      <div class="form-group" *ngIf="nuevoMovimiento.tipoMovimiento?.nombre">
+      <div class="form-group" *ngIf="tipoNombre">
         <label>Nombre del Origen</label>
-       <input type="text" [(ngModel)]="origenNombre" 
-              (input)="nuevoMovimiento.origen!.nombre = origenNombre"
+       <input type="text" [(ngModel)]="origenNombre"
                  placeholder="Ej: Proveedor Juan"/>
       </div>
 
       <!-- Tipo Origen — aparece cuando hay nombre de origen -->
-      <div class="form-group" *ngIf="nuevoMovimiento.origen?.nombre">
+      <div class="form-group" *ngIf="origenNombre">
         <label>Tipo de Origen</label>
-        <select [(ngModel)]="nuevoMovimiento.origen!.tipoOrigen">
+        <select [(ngModel)]="origenTipo">
           <option value="">-- Selecciona --</option>
           <option value="PROVEEDOR">Proveedor</option>
           <option value="TRABAJADOR">Trabajador</option>
@@ -86,9 +85,9 @@
       </div>
 
       <!-- Descripción del origen -->
-      <div class="form-group" *ngIf="nuevoMovimiento.origen?.tipoOrigen">
+      <div class="form-group" *ngIf="origenTipo">
         <label>Descripción del Origen</label>
-        <input type="text" [(ngModel)]="nuevoMovimiento.origen!.descripcion"
+        <input type="text" [(ngModel)]="origenNombre"
                placeholder="Descripción adicional"/>
       </div>
 

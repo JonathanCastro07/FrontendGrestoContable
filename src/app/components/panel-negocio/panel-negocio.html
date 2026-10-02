@@ -4,7 +4,7 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <h1>GestroContable</h1>
-      <span class="negocio-nombre">{{ negocio?.nombreNegocio }}</span>
+      <span class="negocio-nombre">{{ negocio?.nombre }}</span>
     </div>
     <div class="navbar-menu">
       <a routerLink="/configuracion" class="nav-item">
@@ -32,7 +32,7 @@
         <div class="card-icon">🏢</div>
         <div class="card-info">
           <span class="card-label">Negocio</span>
-          <span class="card-value">{{ negocio?.nombreNegocio }}</span>
+          <span class="card-value">{{ negocio?.nombre }}</span>
         </div>
       </div>
       <div class="info-card">
@@ -42,15 +42,8 @@
           <span class="card-value">{{ negocio?.tipoActividad }}</span>
         </div>
       </div>
-      <div class="info-card">
-        <div class="card-icon">👔</div>
-        <div class="card-info">
-          <span class="card-label">Rol</span>
-          <span class="card-value">{{ negocio?.rolPropietario }}</span>
-        </div>
-      </div>
-      <div class="info-card">
-        <div class="card-icon">💵</div>
+        <div class="info-card">
+          <div class="card-icon">💵</div>
         <div class="card-info">
           <span class="card-label">Capital Inicial</span>
           <span class="card-value">${{ negocio?.capitalInicial }}</span>
@@ -66,7 +59,7 @@
           <div class="resumen-icon">📈</div>
           <div class="resumen-info">
             <span class="resumen-label">Total Ingresos</span>
-            <span class="resumen-valor">${{ resumen.totalIngresos }}</span>
+            <span class="resumen-valor">${{ resumen.totalIngreso }}</span>
           </div>
         </div>
 
@@ -74,7 +67,7 @@
           <div class="resumen-icon">📉</div>
           <div class="resumen-info">
             <span class="resumen-label">Total Egresos</span>
-            <span class="resumen-valor">${{ resumen.totalEgreso }}</span>
+            <span class="resumen-valor">${{ resumen.totalEgresos }}</span>
           </div>
         </div>
 
@@ -82,7 +75,7 @@
           <div class="resumen-icon">💸</div>
           <div class="resumen-info">
             <span class="resumen-label">Total Gastos</span>
-            <span class="resumen-valor">${{ resumen.totalGasto }}</span>
+            <span class="resumen-valor">${{ resumen.totalGastos }}</span>
           </div>
         </div>
 
