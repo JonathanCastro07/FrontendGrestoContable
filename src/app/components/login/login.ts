@@ -33,14 +33,19 @@ export class Login {
         this.UsuarioService.listar().subscribe({
           next: (usuarios) => {
             const mio = usuarios.find((u) => u.correo === res.correo);
+            console.log('[login] usuario encontrado:', mio);
 
             if (!mio) {
               this.error = 'No se encontró tu usuario';
               return;
             }
 
+            // guardamos también el idUsuario: el resto de componentes lo leen de aquí
+            localStorage.setItem('usuario', JSON.stringify({ ...res, idUsuario: mio.idUsuario }));
+
             this.NegocioService.listarPorUsuario(mio.idUsuario).subscribe({
               next: (negocios) => {
+                console.log('[login] negocios del usuario:', negocios);
                 if (negocios.length > 0) {
                   localStorage.setItem('negocio', JSON.stringify(negocios[0]));
                   this.router.navigate(['/panel']);
@@ -48,7 +53,11 @@ export class Login {
                   this.router.navigate(['/crear-negocio']);
                 }
               },
-              error: () => this.router.navigate(['/crear-negocio'])
+              // antes mandaba a crear-negocio ante cualquier error; ahora lo mostramos
+              error: (e) => {
+                console.error('[login] error al listar negocios:', e);
+                this.error = `No se pudieron cargar tus negocios (error ${e.status})`;
+              }
             });
           },
           error: () => this.error = 'No se pudo leer tu usuario'

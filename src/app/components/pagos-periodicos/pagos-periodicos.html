@@ -1,0 +1,108 @@
+<div class="movimientos-container">
+
+  <nav class="navbar">
+    <h1>GestroContable</h1>
+    <div class="nav-links">
+      <a routerLink="/panel">← Panel</a>
+      <a routerLink="/movimientos">💰 Movimientos</a>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <div class="header">
+      <h2>Pagos Periódicos</h2>
+      <button class="btn-nuevo" (click)="mostrarFormulario = !mostrarFormulario">
+        + Nuevo Pago Periódico
+      </button>
+    </div>
+
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+    <div class="exito-message" *ngIf="exito">{{ exito }}</div>
+
+    <div class="formulario" *ngIf="mostrarFormulario">
+      <h3>Registrar Pago Periódico</h3>
+
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" [(ngModel)]="nuevoPago.nombre" placeholder="Ej: Arriendo"/>
+      </div>
+
+      <div class="form-group">
+        <label>Monto</label>
+        <input type="number" [(ngModel)]="nuevoPago.monto" placeholder="0"/>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha del próximo pago</label>
+        <input type="date" [(ngModel)]="nuevoPago.fecha"/>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo de Movimiento</label>
+        <select [(ngModel)]="nuevoPago.tipoMovimientoId">
+          <option value="">-- Selecciona --</option>
+          <option *ngFor="let tipo of tiposMovimiento" [value]="tipo.IdTipo">
+            {{ tipo.nombre }} ({{ tipo.naturaleza }})
+          </option>
+        </select>
+        <small *ngIf="tiposMovimiento.length === 0">
+          No hay tipos de movimiento todavía. Crea un movimiento primero.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Origen</label>
+        <select [(ngModel)]="nuevoPago.origenId">
+          <option value="">-- Selecciona --</option>
+          <option *ngFor="let origen of origenes" [value]="origen.id">
+            {{ origen.descripcion }} ({{ origen.tipoOrigen }})
+          </option>
+        </select>
+        <small *ngIf="origenes.length === 0">
+          No hay orígenes todavía. Crea un movimiento primero.
+        </small>
+      </div>
+
+      <div class="form-buttons">
+        <button class="btn-guardar" (click)="registrar()">Guardar</button>
+        <button class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="movimientos-lista" *ngIf="pagos.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Monto</th>
+            <th>Próxima fecha</th>
+            <th>Tipo</th>
+            <th>Origen</th>
+            <th>Activo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pago of pagos">
+            <td>{{ pago.nombre }}</td>
+            <td>{{ pago.monto | currency }}</td>
+            <td>{{ pago.fecha }}</td>
+            <td>{{ nombreTipo(pago.tipoMovimientoId) }}</td>
+            <td>{{ nombreOrigen(pago.origenId) }}</td>
+            <td>{{ pago.activo ? 'Sí' : 'No' }}</td>
+            <td>
+              <button class="btn-guardar" (click)="ejecutar(pago.id)">Ejecutar</button>
+              <button class="btn-eliminar" (click)="eliminar(pago.id)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sin-movimientos" *ngIf="pagos.length === 0">
+      <p>No hay pagos periódicos registrados para este negocio.</p>
+    </div>
+
+  </div>
+</div>

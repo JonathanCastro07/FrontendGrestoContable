@@ -5,9 +5,13 @@ import { CommonModule } from '@angular/common';
 import { MovimientoService } from '../../services/MovimientoService';
 import { NegocioService } from '../../services/NegocioService';
 import { TipoMovimientoService } from '../../services/Tipo-movimientoService';
+import { OrigenService } from '../../services/OrigenService';
 import { MovimientoFinancieroRequest, MovimientoFinancieroResponse } from '../../models/movimiento';
 import { NegocioResponse } from '../../models/negocio';
-import { NaturalezaMovimiento, TipoMovimientoRequest } from '../../models/tipo-movimiento';
+import { TipoMovimientoResponse } from '../../models/tipo-movimiento';
+import { OrigenResponse } from '../../models/origen';
+
+const OPCION_NUEVO = '__nuevo__';
 
 @Component({
   selector: 'app-ver-movimientos',
@@ -19,47 +23,59 @@ export class VerMovimientos implements OnInit {
 
   movimientos: MovimientoFinancieroResponse[] = [];
   negocios: NegocioResponse[] = [];
+  tiposMovimiento: TipoMovimientoResponse[] = [];
+  origenes: OrigenResponse[] = [];
+
   movimientoEditando: MovimientoFinancieroRequest | null = null;
   idMovimientoEditando: string = '';
   movimientosFiltrados: MovimientoFinancieroResponse[] = [];
 
   busqueda: string = '';
   mostrarEditar: boolean = false;
-  tipoNombreEditar: string = '';
-  naturalezaEditar: string = '';
+  tipoSeleccionadoEditar: string = '';
 
   idNegocioSeleccionado: string = '';
   error: string = '';
   exito: string = '';
   idUsuario: string = '';
 
+  readonly OPCION_NUEVO = OPCION_NUEVO;
+
   constructor(
     private movimientoService: MovimientoService,
     private negocioService: NegocioService,
     private tipoMovimientoService: TipoMovimientoService,
+    private origenService: OrigenService,
     private cd: ChangeDetectorRef
   ) {}
 
-ngOnInit() {
-  const data = localStorage.getItem('usuario');
-  console.log('Usuario:', data); 
-  if (data) {
-    const usuario = JSON.parse(data);
-    console.log('idUsuario:', usuario.idUsuario);
-    this.idUsuario = usuario.idUsuario;
-    this.cargarNegocioYMovimientos();
+  ngOnInit() {
+    const data = localStorage.getItem('usuario');
+    if (data) {
+      const usuario = JSON.parse(data);
+      this.idUsuario = usuario.idUsuario;
+      this.cargarNegocioYMovimientos();
+    }
+    this.cargarCatalogos();
   }
-}
+
+  cargarCatalogos() {
+    this.tipoMovimientoService.listarTodos().subscribe({
+      next: (data) => { this.tiposMovimiento = data; this.cd.detectChanges(); },
+      error: () => this.error = 'Error al cargar los tipos de movimiento'
+    });
+    this.origenService.listarTodos().subscribe({
+      next: (data) => { this.origenes = data; this.cd.detectChanges(); },
+      error: () => this.error = 'Error al cargar los orígenes'
+    });
+  }
 
   cargarNegocioYMovimientos() {
     this.negocioService.listarPorUsuario(this.idUsuario).subscribe({
       next: (data) => {
-            console.log('Negocios:', data); 
-            console.log('Length:', data.length); 
         if (data.length > 0) {
           this.negocios = data;
           this.idNegocioSeleccionado = data[0].idNegocio;
-          console.log('idNegocio:', this.idNegocioSeleccionado);
           this.cargarMovimientos();
         }
       },
@@ -67,59 +83,57 @@ ngOnInit() {
     });
   }
 
-cargarMovimientos() {
-  if (!this.idNegocioSeleccionado) return;
-  this.movimientoService.listarPorNegocio(this.idNegocioSeleccionado).subscribe({
-    next: (data) => {
-      this.movimientos = [...data];
-      this.movimientosFiltrados = [...data];
-      this.cd.detectChanges();
-    },
-    error: () => this.error = 'Error al cargar movimientos'
-  });
-}
+  cargarMovimientos() {
+    if (!this.idNegocioSeleccionado) return;
+    this.movimientoService.listarPorNegocio(this.idNegocioSeleccionado).subscribe({
+      next: (data) => {
+        this.movimientos = [...data];
+        this.movimientosFiltrados = [...data];
+        this.cd.detectChanges();
+      },
+      error: () => this.error = 'Error al cargar movimientos'
+    });
+  }
+
+  // nombre legible a partir del id guardado en el movimiento
+  nombreTipo(id: string): string {
+    const tipo = this.tiposMovimiento.find(t => t.IdTipo === id);
+    return tipo ? `${tipo.nombre} (${tipo.naturaleza})` : '—';
+  }
+
+  nombreOrigen(id: string): string {
+    const origen = this.origenes.find(o => o.id === id);
+    return origen ? origen.descripcion : '—';
+  }
 
   editarMovimiento(movimiento: MovimientoFinancieroResponse) {
     this.movimientoEditando = { ...movimiento };
     this.idMovimientoEditando = movimiento.idMovimiento;
-    this.tipoNombreEditar = movimiento.tipoId;
-    this.naturalezaEditar = '';
+    this.tipoSeleccionadoEditar = movimiento.tipoId;
     this.mostrarEditar = true;
   }
 
   guardarEdicion() {
     if (!this.movimientoEditando) return;
-    if (!this.tipoNombreEditar) {
+    if (!this.tipoSeleccionadoEditar) {
       this.error = 'Selecciona un tipo de movimiento';
       return;
     }
-    if (!this.naturalezaEditar) {
-      this.error = 'Selecciona la naturaleza';
-      return;
-    }
 
-    const tipo: TipoMovimientoRequest = {
-      nombre: this.tipoNombreEditar,
-      naturaleza: this.naturalezaEditar as NaturalezaMovimiento
-    };
+    
+    this.movimientoEditando.tipoId = this.tipoSeleccionadoEditar;
 
-    this.tipoMovimientoService.crear(tipo).subscribe({
-      next: (tipoGuardado) => {
-        this.movimientoEditando!.tipoId = tipoGuardado.IdTipo;
-        this.movimientoService.editar(
-          this.idMovimientoEditando,
-          this.movimientoEditando!
-        ).subscribe({
-          next: () => {
-            this.exito = 'Movimiento actualizado exitosamente';
-            this.mostrarEditar = false;
-            this.movimientoEditando = null;
-            this.cargarMovimientos();
-          },
-          error: () => this.error = 'Error al editar el movimiento'
-        });
+    this.movimientoService.editar(
+      this.idMovimientoEditando,
+      this.movimientoEditando
+    ).subscribe({
+      next: () => {
+        this.exito = 'Movimiento actualizado exitosamente';
+        this.mostrarEditar = false;
+        this.movimientoEditando = null;
+        this.cargarMovimientos();
       },
-      error: () => this.error = 'Error al guardar el tipo'
+      error: () => this.error = 'Error al editar el movimiento'
     });
   }
 
@@ -127,21 +141,20 @@ cargarMovimientos() {
     this.mostrarEditar = false;
     this.movimientoEditando = null;
     this.idMovimientoEditando = '';
-    this.tipoNombreEditar = '';
-    this.naturalezaEditar = '';
+    this.tipoSeleccionadoEditar = '';
   }
 
   buscar() {
-  if (!this.busqueda.trim()) {
-    this.movimientosFiltrados = [...this.movimientos];
-    return;
+    if (!this.busqueda.trim()) {
+      this.movimientosFiltrados = [...this.movimientos];
+      return;
+    }
+    const texto = this.busqueda.toLowerCase();
+    this.movimientosFiltrados = this.movimientos.filter(m =>
+      m.descricion?.toLowerCase().includes(texto) ||
+      m.monto?.toString().includes(texto)
+    );
   }
-  const texto = this.busqueda.toLowerCase();
-  this.movimientosFiltrados = this.movimientos.filter(m =>
-    m.descricion?.toLowerCase().includes(texto) ||
-    m.monto?.toString().includes(texto)
-  );
-}
 
   eliminar(id: string | undefined) {
     if (!id) return;
