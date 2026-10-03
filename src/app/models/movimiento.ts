@@ -1,7 +1,6 @@
 export interface MovimientoFinancieroRequest {
   monto: number;
   fecha: string;
-  // con c: el backend escribe "descricion"
   descricion: string;
   negocioId: string;
   tipoId: string;

@@ -18,5 +18,4 @@ export const routes: Routes = [
   { path: 'movimientos', component: Movimientos, canActivate: [authGuard] },
   { path: 'ver-movimientos', component: VerMovimientos, canActivate: [authGuard] },
   { path: 'configuracion', component: Configuracion, canActivate: [authGuard] },
-  { path: 'pagos-periodicos', component: PagosPeriodicos, canActivate: [authGuard] },
-];
+]

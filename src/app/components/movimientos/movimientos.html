@@ -40,10 +40,9 @@
 
       <div class="form-group">
         <label>Descripción</label>
-        <input type="text" [(ngModel)]="nuevoMovimiento.descricion" placeholder="Descripción del movimiento"/>
+        <input type="text" [(ngModel)]="nuevoMovimiento.descricion" placeholder="Descricion del movimiento"/>
       </div>
-      
-<!-- Tipo de Movimiento -->
+    <!-- Tipo de Movimiento -->
 <div class="form-group">
   <label>Tipo de Movimiento</label>
   <select [(ngModel)]="tipoSeleccionado">
@@ -55,7 +54,6 @@
   </select>
 </div>
 
-<!-- Campos para crear tipo nuevo, solo si se eligió esa opción -->
 <ng-container *ngIf="tipoSeleccionado === OPCION_NUEVO">
   <div class="form-group">
     <label>Nombre del nuevo tipo</label>
@@ -76,7 +74,6 @@
   </div>
 </ng-container>
 
-<!-- Origen -->
 <div class="form-group" *ngIf="tipoSeleccionado">
   <label>Origen</label>
   <select [(ngModel)]="origenSeleccionado">
@@ -88,7 +85,6 @@
   </select>
 </div>
 
-<!-- Campos para crear origen nuevo, solo si se eligió esa opción -->
 <ng-container *ngIf="origenSeleccionado === OPCION_NUEVO">
   <div class="form-group">
     <label>Descripción del nuevo origen</label>
@@ -107,17 +103,3 @@
     </select>
   </div>
 </ng-container>
-
-      <div class="form-buttons">
-        <button class="btn-guardar" (click)="registrar()">Guardar</button>
-        <button class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
-      </div>
-    </div>
-
-    <!-- Sin movimientos -->
-    <div class="sin-movimientos" *ngIf="movimientos.length === 0 && idNegocioSeleccionado">
-      <p>No hay movimientos registrados para este negocio.</p>
-    </div>
-
-  </div>
-</div>

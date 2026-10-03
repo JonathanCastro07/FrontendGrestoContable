@@ -13,15 +13,15 @@ import { UsuarioService } from '../../services/usuarioService';
   styleUrl: './panel-negocio.scss',
 })
 export class PanelNegocio implements OnInit {
-
   negocio: NegocioResponse | null = null;
   usuario: UsuarioResponse | null = null;
   resumen: ResumenFinanciero | null = null;
 
-  constructor(private router: Router,
-  private negocioService: NegocioService,
-  private usuarioService: UsuarioService,
-  private cd: ChangeDetectorRef
+  constructor(
+    private router: Router,
+    private negocioService: NegocioService,
+    private usuarioService: UsuarioService,
+    private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -42,18 +42,19 @@ export class PanelNegocio implements OnInit {
     }
   }
 
-  // llama al logout del backend para que el token quede en la blacklist
   cerrarSesion() {
     this.usuarioService.logout().subscribe({
-      next: () => this.limpiarYSalir(),
-      error: () => this.limpiarYSalir()
+      next: () => {
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('negocio');
+        this.router.navigate(['/login']);
+      },
+      error: () => {
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('negocio');
+        this.router.navigate(['/login']);
+      },
     });
-  }
-
-  private limpiarYSalir() {
-    localStorage.removeItem('usuario');
-    localStorage.removeItem('negocio');
-    this.router.navigate(['/login']);
   }
 
   cargarResumen() {
@@ -65,7 +66,7 @@ export class PanelNegocio implements OnInit {
         this.resumen = data;
         this.cd.detectChanges();
       },
-      error: (err) => console.log('Error:', err)
+      error: (err) => console.log('Error:', err),
     });
   }
 }

@@ -11,8 +11,6 @@ import { NegocioResponse } from '../../models/negocio';
 import { TipoMovimientoResponse } from '../../models/tipo-movimiento';
 import { OrigenResponse } from '../../models/origen';
 
-const OPCION_NUEVO = '__nuevo__';
-
 @Component({
   selector: 'app-ver-movimientos',
   imports: [FormsModule, RouterLink, CommonModule],
@@ -39,8 +37,6 @@ export class VerMovimientos implements OnInit {
   exito: string = '';
   idUsuario: string = '';
 
-  readonly OPCION_NUEVO = OPCION_NUEVO;
-
   constructor(
     private movimientoService: MovimientoService,
     private negocioService: NegocioService,
@@ -60,11 +56,11 @@ export class VerMovimientos implements OnInit {
   }
 
   cargarCatalogos() {
-    this.tipoMovimientoService.listarTodos().subscribe({
+    this.tipoMovimientoService.listarTodo().subscribe({
       next: (data) => { this.tiposMovimiento = data; this.cd.detectChanges(); },
       error: () => this.error = 'Error al cargar los tipos de movimiento'
     });
-    this.origenService.listarTodos().subscribe({
+    this.origenService.listar().subscribe({
       next: (data) => { this.origenes = data; this.cd.detectChanges(); },
       error: () => this.error = 'Error al cargar los orígenes'
     });
@@ -95,7 +91,6 @@ export class VerMovimientos implements OnInit {
     });
   }
 
-  // nombre legible a partir del id guardado en el movimiento
   nombreTipo(id: string): string {
     const tipo = this.tiposMovimiento.find(t => t.IdTipo === id);
     return tipo ? `${tipo.nombre} (${tipo.naturaleza})` : '—';
@@ -120,10 +115,9 @@ export class VerMovimientos implements OnInit {
       return;
     }
 
-    
     this.movimientoEditando.tipoId = this.tipoSeleccionadoEditar;
 
-    this.movimientoService.editar(
+    this.movimientoService.editarMovimiento(
       this.idMovimientoEditando,
       this.movimientoEditando
     ).subscribe({
@@ -158,7 +152,7 @@ export class VerMovimientos implements OnInit {
 
   eliminar(id: string | undefined) {
     if (!id) return;
-    this.movimientoService.eliminar(id).subscribe({
+    this.movimientoService.eliminarMovimiento(id).subscribe({
       next: () => this.cargarMovimientos(),
       error: () => this.error = 'Error al eliminar el movimiento'
     });

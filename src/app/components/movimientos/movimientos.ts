@@ -2,13 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Observable, of, switchMap, map } from 'rxjs';
 import { MovimientoService } from '../../services/MovimientoService';
 import { NegocioService } from '../../services/NegocioService';
 import { TipoMovimientoService } from '../../services/Tipo-movimientoService';
 import { OrigenService } from '../../services/OrigenService';
 import { PeriodoService } from '../../services/PeriodoService';
-import { Observable, of, switchMap } from 'rxjs';
-import { map } from 'rxjs/operators';
 import {
   MovimientoFinancieroRequest,
   MovimientoFinancieroResponse,
@@ -26,7 +25,6 @@ const MESES = [
   'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
 ];
 
-// valor especial del <select> para indicar "quiero crear uno nuevo"
 const OPCION_NUEVO = '__nuevo__';
 
 @Component({
@@ -40,7 +38,6 @@ export class Movimientos implements OnInit {
   movimientos: MovimientoFinancieroResponse[] = [];
   negocios: NegocioResponse[] = [];
 
-  // catálogos existentes, para elegir en vez de crear duplicados
   tiposMovimiento: TipoMovimientoResponse[] = [];
   origenes: OrigenResponse[] = [];
 
@@ -51,14 +48,12 @@ export class Movimientos implements OnInit {
     negocioId: '',
     tipoId: '',
     origenId: '',
-    periodoId: ''
+    periodoId: '',
   };
 
-  // valor elegido en el select: id de uno existente, o OPCION_NUEVO
   tipoSeleccionado: string = '';
   origenSeleccionado: string = '';
 
-  // campos solo para cuando se elige "crear nuevo"
   nuevoTipoNombre: string = '';
   nuevaNaturaleza: string = '';
   nuevoOrigenDescripcion: string = '';
@@ -71,7 +66,8 @@ export class Movimientos implements OnInit {
   exito: string = '';
   mostrarFormulario: boolean = false;
   idUsuario: string = '';
-  movimientoEditando: MovimientoFinancieroRequest | null = null;
+
+  movimientoEditando: MovimientoFinancieroResponse | null = null;
   idMovimientoEditando: string = '';
   mostrarEditar: boolean = false;
   tipoSeleccionadoEditar: string = '';
@@ -95,12 +91,12 @@ export class Movimientos implements OnInit {
   }
 
   cargarCatalogos() {
-    this.tipoMovimientoService.listarTodos().subscribe({
+    this.tipoMovimientoService.listarTodo().subscribe({
       next: (data) => this.tiposMovimiento = data,
       error: () => this.error = 'Error al cargar los tipos de movimiento'
     });
 
-    this.origenService.listarTodos().subscribe({
+    this.origenService.listar().subscribe({
       next: (data) => this.origenes = data,
       error: () => this.error = 'Error al cargar los orígenes'
     });
@@ -109,8 +105,8 @@ export class Movimientos implements OnInit {
   cargarNegocioYMovimientos() {
     this.negocioService.listarPorUsuario(this.idUsuario).subscribe({
       next: (data) => {
+        this.negocios = data;
         if (data.length > 0) {
-          this.negocios = data;
           this.idNegocioSeleccionado = data[0].idNegocio;
           this.cargarMovimientos();
         }
@@ -131,13 +127,12 @@ export class Movimientos implements OnInit {
     return fecha.split('T')[0];
   }
 
-
   private obtenerOCrearPeriodoId(fecha: string): Observable<string> {
     const f = new Date(fecha);
     const anio = f.getFullYear();
     const mes = MESES[f.getMonth()];
 
-    return this.periodoService.listarTodos().pipe(
+    return this.periodoService.listarTodo().pipe(
       switchMap((periodos) => {
         const existe = periodos.find((p) => p.mes === mes && p.anio === anio);
         if (existe) {
@@ -150,7 +145,6 @@ export class Movimientos implements OnInit {
     );
   }
 
-  // devuelve el id del tipo a usar: el elegido, o crea uno nuevo si tocó
   private resolverTipoId(): Observable<string> {
     if (this.tipoSeleccionado !== OPCION_NUEVO) {
       return of(this.tipoSeleccionado);
@@ -167,7 +161,6 @@ export class Movimientos implements OnInit {
     );
   }
 
-  // devuelve el id del origen a usar: el elegido, o crea uno nuevo si tocó
   private resolverOrigenId(): Observable<string> {
     if (this.origenSeleccionado !== OPCION_NUEVO) {
       return of(this.origenSeleccionado);
@@ -185,6 +178,9 @@ export class Movimientos implements OnInit {
   }
 
   registrar() {
+    this.error = '';
+    this.exito = '';
+
     if (!this.tipoSeleccionado) {
       this.error = 'Selecciona un tipo de movimiento';
       return;
@@ -199,6 +195,10 @@ export class Movimientos implements OnInit {
     }
     if (this.origenSeleccionado === OPCION_NUEVO && (!this.nuevoOrigenDescripcion || !this.nuevoOrigenTipo)) {
       this.error = 'Completa la descripción y el tipo del origen nuevo';
+      return;
+    }
+    if (!this.idNegocioSeleccionado) {
+      this.error = 'Selecciona un negocio';
       return;
     }
 
@@ -216,7 +216,7 @@ export class Movimientos implements OnInit {
                 this.nuevoMovimiento.tipoId = tipoId;
                 this.nuevoMovimiento.origenId = origenId;
 
-                this.movimientoService.registrar(this.nuevoMovimiento).subscribe({
+                this.movimientoService.registrarMovimiento(this.nuevoMovimiento).subscribe({
                   next: () => {
                     this.exito = 'Movimiento registrado exitosamente';
                     this.mostrarFormulario = false;
@@ -256,7 +256,7 @@ export class Movimientos implements OnInit {
 
   eliminar(id: string | undefined) {
     if (!id) return;
-    this.movimientoService.eliminar(id).subscribe({
+    this.movimientoService.eliminarMovimiento(id).subscribe({
       next: () => this.cargarMovimientos(),
       error: () => this.error = 'Error al eliminar el movimiento'
     });
@@ -276,10 +276,9 @@ export class Movimientos implements OnInit {
       return;
     }
 
-
     this.movimientoEditando.tipoId = this.tipoSeleccionadoEditar;
 
-    this.movimientoService.editar(
+    this.movimientoService.editarMovimiento(
       this.idMovimientoEditando,
       this.movimientoEditando
     ).subscribe({

@@ -16,19 +16,19 @@ export class PeriodoService {
     return this.http.post<PeriodoResponse>(this.apiUrl, periodo);
   }
 
-  listarTodos(): Observable<PeriodoResponse[]> {
+  listarTodo(): Observable<PeriodoResponse[]> {
     return this.http.get<PeriodoResponse[]>(this.apiUrl);
   }
 
-  buscarPorId(id: string): Observable<PeriodoResponse> {
-    return this.http.get<PeriodoResponse>(`${this.apiUrl}/${id}`);
+  buscarPorId(idPeriodo: string): Observable<PeriodoResponse> {
+    return this.http.get<PeriodoResponse>(`${this.apiUrl}/${idPeriodo}`);
   }
 
-  actualizar(id: string, periodo: PeriodoRequest): Observable<PeriodoResponse> {
-    return this.http.put<PeriodoResponse>(`${this.apiUrl}/${id}`, periodo);
+  actualizar(idPeriodo: string, periodo: PeriodoRequest): Observable<PeriodoResponse> {
+    return this.http.put<PeriodoResponse>(`${this.apiUrl}/${idPeriodo}`, periodo);
   }
 
-  eliminar(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  eliminar(idPeriodo: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${idPeriodo}`);
   }
 }

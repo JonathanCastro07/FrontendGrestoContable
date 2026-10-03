@@ -1,6 +1,4 @@
 <div class="ver-movimientos-container">
-
-
   <nav class="navbar">
     <h1>GestroContable</h1>
     <div class="nav-links">
@@ -76,7 +74,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let movimiento of movimientosFiltrados">
-            <td>{{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ movimiento.fecha | date:'dd/MM/yyyy' }}</td>
             <td>{{ movimiento.descricion }}</td>
             <td>{{ nombreTipo(movimiento.tipoId) }}</td>
             <td>{{ nombreOrigen(movimiento.origenId) }}</td>

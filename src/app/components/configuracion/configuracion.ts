@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UsuarioService } from '../../services/usuarioService';
 import { NegocioService } from '../../services/NegocioService';
-import { RegistroRequest, UsuarioResponse } from '../../models/usuario';
+import { UsuarioResponse, RegistroRequest } from '../../models/usuario';
 import { NegocioResponse } from '../../models/negocio';
 
 @Component({
@@ -13,10 +13,7 @@ import { NegocioResponse } from '../../models/negocio';
   templateUrl: './configuracion.html',
   styleUrl: './configuracion.scss',
 })
-
-// hola desde java
 export class Configuracion implements OnInit {
-
   usuario: UsuarioResponse | null = null;
   negocio: NegocioResponse | null = null;
 
@@ -29,7 +26,6 @@ export class Configuracion implements OnInit {
 
   error: string = '';
   exito: string = '';
-
   seccionActiva: string = 'correo';
 
   constructor(
@@ -54,17 +50,6 @@ export class Configuracion implements OnInit {
     this.exito = '';
   }
 
-  // el backend solo cambia la contraseña si el campo viene vacío,
-  // así que al cambiar el correo se manda password en blanco
-  private datosParaActualizar(password: string): RegistroRequest {
-    return {
-      nombre: this.usuario!.nombre,
-      correo: this.usuario!.correo,
-      password: password,
-      preguntaSeguridad: ''
-    };
-  }
-
   cambiarCorreo() {
     this.error = '';
     this.exito = '';
@@ -78,10 +63,17 @@ export class Configuracion implements OnInit {
       return;
     }
 
-    const datos = this.datosParaActualizar('');
-    datos.correo = this.nuevoCorreo;
+    const id = this.usuario?.idUsuario;
+    if (!id) return;
 
-    this.usuarioService.actualizar(this.usuario!.idUsuario, datos).subscribe({
+    const usuarioActualizado: RegistroRequest = {
+      nombre: this.usuario!.nombre,
+      correo: this.nuevoCorreo,
+      password: '',
+      preguntaSeguridad: '',
+    };
+
+    this.usuarioService.actualizar(id, usuarioActualizado).subscribe({
       next: (data) => {
         localStorage.setItem('usuario', JSON.stringify(data));
         this.usuario = data;
@@ -89,7 +81,9 @@ export class Configuracion implements OnInit {
         this.nuevoCorreo = '';
         this.confirmarCorreo = '';
       },
-      error: () => this.error = 'Error al actualizar el correo'
+      error: () => {
+        this.error = 'Error al actualizar el correo';
+      },
     });
   }
 
@@ -97,8 +91,10 @@ export class Configuracion implements OnInit {
     this.error = '';
     this.exito = '';
 
-    // no se puede comparar la contraseña actual: el frontend nunca la
-    // tiene, porque la respuesta del backend no la incluye
+    if (!this.passwordActual) {
+      this.error = 'Ingresa tu contraseña actual';
+      return;
+    }
     if (!this.nuevaPassword) {
       this.error = 'Ingresa la nueva contraseña';
       return;
@@ -108,9 +104,17 @@ export class Configuracion implements OnInit {
       return;
     }
 
-    const datos = this.datosParaActualizar(this.nuevaPassword);
+    const id = this.usuario?.idUsuario;
+    if (!id) return;
 
-    this.usuarioService.actualizar(this.usuario!.idUsuario, datos).subscribe({
+    const usuarioActualizado: RegistroRequest = {
+      nombre: this.usuario!.nombre,
+      correo: this.usuario!.correo,
+      password: this.nuevaPassword,
+      preguntaSeguridad: '',
+    };
+
+    this.usuarioService.actualizar(id, usuarioActualizado).subscribe({
       next: (data) => {
         localStorage.setItem('usuario', JSON.stringify(data));
         this.usuario = data;
@@ -119,19 +123,25 @@ export class Configuracion implements OnInit {
         this.nuevaPassword = '';
         this.confirmarPassword = '';
       },
-      error: () => this.error = 'Error al actualizar la contraseña'
+      error: () => {
+        this.error = 'Error al actualizar la contraseña';
+      },
     });
   }
 
   borrarNegocio() {
     if (!confirm('¿Estás seguro de que quieres borrar tu negocio? Esta acción no se puede deshacer.')) return;
+    const id = this.negocio?.idNegocio;
+    if (!id) return;
 
-    this.negocioService.eliminar(this.negocio!.idNegocio).subscribe({
+    this.negocioService.eliminar(id).subscribe({
       next: () => {
         localStorage.removeItem('negocio');
         this.router.navigate(['/crear-negocio']);
       },
-      error: () => this.error = 'Error al borrar el negocio'
+      error: () => {
+        this.error = 'Error al borrar el negocio';
+      },
     });
   }
 }

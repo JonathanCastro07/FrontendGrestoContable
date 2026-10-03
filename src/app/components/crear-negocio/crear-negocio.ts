@@ -12,29 +12,18 @@ import { NegocioRequest } from '../../models/negocio';
   styleUrl: './crear-negocio.scss',
 })
 export class CrearNegocio {
-
   negocio: NegocioRequest = {
     nombreNegocio: '',
     TipoActividad: '',
-    capitalInicial: 0
+    capitalInicial: 0,
   };
 
-  // el backend no tiene este campo, así que no se envía
-  rolPropietario: string = '';
-
   error: string = '';
-  idUsuario: string = '';
 
   constructor(
     private negocioService: NegocioService,
     private router: Router
-  ) {
-    const data = localStorage.getItem('usuario');
-    if (data) {
-      const usuario = JSON.parse(data);
-      this.idUsuario = usuario.idUsuario;
-    }
-  }
+  ) {}
 
   crear() {
     this.negocioService.crear(this.negocio).subscribe({
@@ -42,7 +31,9 @@ export class CrearNegocio {
         localStorage.setItem('negocio', JSON.stringify(negocioCreado));
         this.router.navigate(['/panel']);
       },
-      error: () => this.error = 'Error al crear el negocio'
+      error: () => {
+        this.error = 'Error al crear el negocio';
+      },
     });
   }
 }

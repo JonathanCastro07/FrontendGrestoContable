@@ -58,12 +58,12 @@ export class PagosPeriodicos implements OnInit {
   // trae los tipos de movimiento y orígenes YA creados, para elegir
   // de una lista en vez de crear uno nuevo cada vez
   cargarCatalogos() {
-    this.tipoMovimientoService.listarTodos().subscribe({
+    this.tipoMovimientoService.listarTodo().subscribe({
       next: (data) => this.tiposMovimiento = data,
       error: () => this.error = 'Error al cargar los tipos de movimiento'
     });
 
-    this.origenService.listarTodos().subscribe({
+    this.origenService.listar().subscribe({
       next: (data) => this.origenes = data,
       error: () => this.error = 'Error al cargar los orígenes'
     });
@@ -112,7 +112,7 @@ export class PagosPeriodicos implements OnInit {
   }
 
   ejecutar(id: string) {
-    this.pagoPeriodicoService.ejecutarPago(id).subscribe({
+    this.pagoPeriodicoService.ejecutar(id).subscribe({
       next: () => {
         this.exito = 'Pago ejecutado: se generó el movimiento';
         this.cargarPagos();

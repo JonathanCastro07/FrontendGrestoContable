@@ -1,17 +1,13 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_URL } from '../config/api';
-import {
-  PagoPeriodicoRequest,
-  PagoPeriodicoResponse,
-} from '../models/pago-periodico';
+import { PagoPeriodicoRequest, PagoPeriodicoResponse } from '../models/pago-periodico';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PagoPeriodicoService {
-  // ojo: el backend lo expone en plural
   private apiUrl = `${API_URL}/pagos-periodicos`;
 
   constructor(private http: HttpClient) {}
@@ -44,19 +40,12 @@ export class PagoPeriodicoService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  ejecutarPago(id: string): Observable<void> {
+  ejecutar(id: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/${id}/ejecutar`, null);
   }
 
-  listarPorPeriodo(
-    idNegocio: string,
-    mes: number,
-    anio: number
-  ): Observable<PagoPeriodicoResponse[]> {
-    const params = { mes, anio };
-    return this.http.get<PagoPeriodicoResponse[]>(
-      `${this.apiUrl}/negocio/${idNegocio}/periodo`,
-      { params }
-    );
+  listarPorPeriodo(idNegocio: string, mes: number, anio: number): Observable<PagoPeriodicoResponse[]> {
+    const params = new HttpParams().set('mes', mes).set('anio', anio);
+    return this.http.get<PagoPeriodicoResponse[]>(`${this.apiUrl}/negocio/${idNegocio}/periodo`, { params });
   }
 }

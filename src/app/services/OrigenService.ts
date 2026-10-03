@@ -16,7 +16,7 @@ export class OrigenService {
     return this.http.post<OrigenResponse>(this.apiUrl, origen);
   }
 
-  listarTodos(): Observable<OrigenResponse[]> {
+  listar(): Observable<OrigenResponse[]> {
     return this.http.get<OrigenResponse[]>(this.apiUrl);
   }
 

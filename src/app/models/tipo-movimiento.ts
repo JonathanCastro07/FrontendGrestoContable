@@ -6,7 +6,6 @@ export interface TipoMovimientoRequest {
 }
 
 export interface TipoMovimientoResponse {
-  // con I mayúscula: el backend lo devuelve así
   IdTipo: string;
   nombre: string;
   naturaleza: string;

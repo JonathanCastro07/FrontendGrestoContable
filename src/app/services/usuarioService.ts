@@ -30,8 +30,6 @@ export class UsuarioService {
   }
 
   logout(): Observable<void> {
-    // finalize y no tap: si el token ya venció el backend responde 401,
-    // y con finalize el localStorage se limpia igual
     return this.http.post<void>(`${this.apiUrl}/logout`, null).pipe(
       finalize(() => localStorage.removeItem('token'))
     );
