@@ -19,7 +19,7 @@
       <label>Nombre</label>
       <input
         type="text"
-        [(ngModel)]="usuario.nombre"
+        [(ngModel)]="registro.nombre"
         placeholder="Tu nombre completo"
       />
     </div>
@@ -28,17 +28,17 @@
       <label>Correo</label>
       <input
         type="email"
-        [(ngModel)]="usuario.correo"
+        [(ngModel)]="registro.correo"
         placeholder="tucorreo@gmail.com"
       />
     </div>
 
     <div class="form-group">
-      <label>Teléfono</label>
+      <label>Pregunta de seguridad</label>
       <input
         type="text"
-        [(ngModel)]="usuario.telefono"
-        placeholder="3001234567"
+        [(ngModel)]="registro.preguntaSeguridad"
+        placeholder="¿Cuál fue tu primera mascota?"
       />
     </div>
 
@@ -46,7 +46,7 @@
       <label>Contraseña</label>
       <input
         type="password"
-        [(ngModel)]="usuario.password"
+        [(ngModel)]="registro.password"
         placeholder="••••••••"
       />
     </div>

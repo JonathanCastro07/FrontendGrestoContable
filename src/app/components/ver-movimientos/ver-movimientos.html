@@ -12,7 +12,7 @@
   <div class="content">
 
     <div class="header">
-      <h2>Movimientos — {{ negocios[0]?.nombreNegocio }}</h2>
+      <h2>Movimientos — {{ negocios[0]?.nombre }}</h2>
     </div>
 
 
@@ -35,26 +35,7 @@
 
       <div class="form-group">
         <label>Descripción</label>
-        <input type="text" [(ngModel)]="movimientoEditando.descripcion"/>
-      </div>
-
-      <div class="form-group">
-        <label>Tipo de Movimiento</label>
-        <select [(ngModel)]="tipoNombreEditar">
-          <option value="">-- Selecciona --</option>
-          <option value="INGRESO">Ingreso</option>
-          <option value="EGRESO">Egreso</option>
-          <option value="GASTO">Gasto</option>
-        </select>
-      </div>
-
-      <div class="form-group" *ngIf="tipoNombreEditar">
-        <label>Naturaleza</label>
-        <select [(ngModel)]="naturalezaEditar">
-          <option value="">-- Selecciona --</option>
-          <option value="DEBITO">Débito</option>
-          <option value="CREDITO">Crédito</option>
-        </select>
+        <input type="text" [(ngModel)]="movimientoEditando.descricion"/>
       </div>
 
       <div class="form-buttons">
@@ -86,11 +67,11 @@
         </thead>
         <tbody>
           <tr *ngFor="let movimiento of movimientosFiltrados">
-            <td>{{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>{{ movimiento.descripcion }}</td>
-            <td>{{ movimiento.tipoMovimiento?.nombre }}</td>
-            <td>{{ movimiento.tipoMovimiento?.naturaleza }}</td>
-            <td>{{ movimiento.origen?.nombre }}</td>
+            <td>{{ movimiento.fecha | date:'dd/MM/yyyy' }}</td>
+            <td>{{ movimiento.descricion }}</td>
+            <td>{{ movimiento.tipoId }}</td>
+            <td>{{ movimiento.origenId }}</td>
+            <td>{{ movimiento.periodoId }}</td>
             <td>${{ movimiento.monto }}</td>
             <td>
               <button class="btn-editar" (click)="editarMovimiento(movimiento)">

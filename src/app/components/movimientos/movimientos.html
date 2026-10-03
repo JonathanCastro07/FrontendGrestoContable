@@ -13,7 +13,7 @@
   <div class="content">
 
     <div class="header">
-      <h2>Movimientos — {{ negocios[0]?.nombreNegocio }}</h2>
+      <h2>Movimientos — {{ negocios[0]?.nombre }}</h2>
       <button class="btn-nuevo" (click)="mostrarFormulario = !mostrarFormulario">
         + Nuevo Movimiento
       </button>
@@ -39,7 +39,7 @@
 
       <div class="form-group">
         <label>Descripción</label>
-        <input type="text" [(ngModel)]="nuevoMovimiento.descripcion" placeholder="Descripción del movimiento"/>
+        <input type="text" [(ngModel)]="nuevoMovimiento.descricion" placeholder="Descricion del movimiento"/>
       </div>
 
 <!-- Tipo de Movimiento -->
@@ -63,19 +63,10 @@
   </select>
 </div>
 
-      <!-- Origen — aparece al seleccionar tipo -->
-      <div class="form-group" *ngIf="nuevoMovimiento.tipoMovimiento?.nombre">
-        <label>Nombre del Origen</label>
-       <input type="text" [(ngModel)]="origenNombre" 
-              (input)="nuevoMovimiento.origen!.nombre = origenNombre"
-                 placeholder="Ej: Proveedor Juan"/>
-      </div>
-
-      <!-- Tipo Origen — aparece cuando hay nombre de origen -->
-      <div class="form-group" *ngIf="nuevoMovimiento.origen?.nombre">
+      <!-- Origen -->
+      <div class="form-group" *ngIf="tipoNombre">
         <label>Tipo de Origen</label>
-        <select [(ngModel)]="nuevoMovimiento.origen!.tipoOrigen">
-          <option value="">-- Selecciona --</option>
+        <select [(ngModel)]="tipoOrigen">
           <option value="PROVEEDOR">Proveedor</option>
           <option value="TRABAJADOR">Trabajador</option>
           <option value="SERVICIO_PUBLICO">Servicio Público</option>
@@ -85,11 +76,10 @@
         </select>
       </div>
 
-      <!-- Descripción del origen -->
-      <div class="form-group" *ngIf="nuevoMovimiento.origen?.tipoOrigen">
-        <label>Descripción del Origen</label>
-        <input type="text" [(ngModel)]="nuevoMovimiento.origen!.descripcion"
-               placeholder="Descripción adicional"/>
+      <div class="form-group" *ngIf="tipoNombre">
+        <label>Descripcion del Origen</label>
+        <input type="text" [(ngModel)]="origenDescripcion"
+               placeholder="Descripcion del origen"/>
       </div>
 
       <div class="form-buttons">

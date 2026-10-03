@@ -35,7 +35,7 @@
 
 <div class="form-group">
   <label>Tipo de Actividad</label>
-  <select [(ngModel)]="nuevoNegocio.tipoActividad">
+  <select [(ngModel)]="nuevoNegocio.TipoActividad">
     <option value="">-- Selecciona --</option>
     <option value="Comercio">Comercio</option>
     <option value="Servicios">Servicios</option>
@@ -62,7 +62,7 @@
     <!-- Lista de negocios -->
     <div class="negocios-grid">
       <div class="negocio-card" *ngFor="let negocio of negocios">
-        <h3>{{ negocio.nombreNegocio }}</h3>
+        <h3>{{ negocio.nombre }}</h3>
         <p><strong>Actividad:</strong> {{ negocio.tipoActividad }}</p>
         <p><strong>Capital inicial:</strong> ${{ negocio.capitalInicial }}</p>
         <div class="card-buttons">

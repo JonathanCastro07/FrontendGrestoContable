@@ -1,30 +1,34 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Origen } from '../models/origen';
+import { API_URL } from '../config/api';
+import { OrigenRequest, OrigenResponse } from '../models/origen';
 
 @Injectable({
   providedIn: 'root',
 })
 export class OrigenService {
-
-  private apiUrl = 'http://localhost:8080/api/origen';
+  private apiUrl = `${API_URL}/origen`;
 
   constructor(private http: HttpClient) {}
 
-  crear(origen: Origen): Observable<Origen> {
-    return this.http.post<Origen>(this.apiUrl, origen);
+  crear(origen: OrigenRequest): Observable<OrigenResponse> {
+    return this.http.post<OrigenResponse>(this.apiUrl, origen);
   }
 
-  listarTodos(): Observable<Origen[]> {
-    return this.http.get<Origen[]>(this.apiUrl);
+  listar(): Observable<OrigenResponse[]> {
+    return this.http.get<OrigenResponse[]>(this.apiUrl);
   }
 
-  actualizar(id: number, origen: Origen): Observable<Origen> {
-    return this.http.put<Origen>(`${this.apiUrl}/${id}`, origen);
+  buscarPorId(id: string): Observable<OrigenResponse> {
+    return this.http.get<OrigenResponse>(`${this.apiUrl}/${id}`);
   }
 
-  eliminar(id: number): Observable<void> {
+  actualizar(id: string, origen: OrigenRequest): Observable<OrigenResponse> {
+    return this.http.put<OrigenResponse>(`${this.apiUrl}/${id}`, origen);
+  }
+
+  eliminar(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

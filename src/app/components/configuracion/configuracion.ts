@@ -4,8 +4,8 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UsuarioService } from '../../services/usuarioService';
 import { NegocioService } from '../../services/NegocioService';
-import { Usuario } from '../../models/usuario';
-import { Negocio } from '../../models/negocio';
+import { UsuarioResponse, RegistroRequest } from '../../models/usuario';
+import { NegocioResponse } from '../../models/negocio';
 
 @Component({
   selector: 'app-configuracion',
@@ -13,17 +13,12 @@ import { Negocio } from '../../models/negocio';
   templateUrl: './configuracion.html',
   styleUrl: './configuracion.scss',
 })
-
-// hola desde java 
 export class Configuracion implements OnInit {
-
-  usuario: Usuario | null = null;
-  negocio: Negocio | null = null;
-
+  usuario: UsuarioResponse | null = null;
+  negocio: NegocioResponse | null = null;
 
   nuevoCorreo: string = '';
   confirmarCorreo: string = '';
-
 
   passwordActual: string = '';
   nuevaPassword: string = '';
@@ -31,7 +26,6 @@ export class Configuracion implements OnInit {
 
   error: string = '';
   exito: string = '';
-
   seccionActiva: string = 'correo';
 
   constructor(
@@ -69,8 +63,17 @@ export class Configuracion implements OnInit {
       return;
     }
 
-    const usuarioActualizado = { ...this.usuario!, correo: this.nuevoCorreo };
-    this.usuarioService.actualizar(this.usuario!.idUsuario!, usuarioActualizado).subscribe({
+    const id = this.usuario?.idUsuario;
+    if (!id) return;
+
+    const usuarioActualizado: RegistroRequest = {
+      nombre: this.usuario!.nombre,
+      correo: this.nuevoCorreo,
+      password: '',
+      preguntaSeguridad: '',
+    };
+
+    this.usuarioService.actualizar(id, usuarioActualizado).subscribe({
       next: (data) => {
         localStorage.setItem('usuario', JSON.stringify(data));
         this.usuario = data;
@@ -78,7 +81,9 @@ export class Configuracion implements OnInit {
         this.nuevoCorreo = '';
         this.confirmarCorreo = '';
       },
-      error: () => this.error = 'Error al actualizar el correo'
+      error: () => {
+        this.error = 'Error al actualizar el correo';
+      },
     });
   }
 
@@ -90,10 +95,6 @@ export class Configuracion implements OnInit {
       this.error = 'Ingresa tu contraseña actual';
       return;
     }
-    if (this.passwordActual !== this.usuario?.password) {
-      this.error = 'La contraseña actual no es correcta';
-      return;
-    }
     if (!this.nuevaPassword) {
       this.error = 'Ingresa la nueva contraseña';
       return;
@@ -103,8 +104,17 @@ export class Configuracion implements OnInit {
       return;
     }
 
-    const usuarioActualizado = { ...this.usuario!, password: this.nuevaPassword };
-    this.usuarioService.actualizar(this.usuario!.idUsuario!, usuarioActualizado).subscribe({
+    const id = this.usuario?.idUsuario;
+    if (!id) return;
+
+    const usuarioActualizado: RegistroRequest = {
+      nombre: this.usuario!.nombre,
+      correo: this.usuario!.correo,
+      password: this.nuevaPassword,
+      preguntaSeguridad: '',
+    };
+
+    this.usuarioService.actualizar(id, usuarioActualizado).subscribe({
       next: (data) => {
         localStorage.setItem('usuario', JSON.stringify(data));
         this.usuario = data;
@@ -113,19 +123,25 @@ export class Configuracion implements OnInit {
         this.nuevaPassword = '';
         this.confirmarPassword = '';
       },
-      error: () => this.error = 'Error al actualizar la contraseña'
+      error: () => {
+        this.error = 'Error al actualizar la contraseña';
+      },
     });
   }
 
   borrarNegocio() {
     if (!confirm('¿Estás seguro de que quieres borrar tu negocio? Esta acción no se puede deshacer.')) return;
+    const id = this.negocio?.idNegocio;
+    if (!id) return;
 
-    this.negocioService.eliminar(this.negocio!.idNegocio!).subscribe({
+    this.negocioService.eliminar(id).subscribe({
       next: () => {
         localStorage.removeItem('negocio');
         this.router.navigate(['/crear-negocio']);
       },
-      error: () => this.error = 'Error al borrar el negocio'
+      error: () => {
+        this.error = 'Error al borrar el negocio';
+      },
     });
   }
 }

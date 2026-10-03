@@ -1,10 +1,19 @@
-import { Usuario } from "./usuario";
+export interface NegocioRequest {
+  nombreNegocio: string;
+  TipoActividad: string;
+  capitalInicial: number;
+}
 
-export interface Negocio {
-idNegocio?: number;
-nombreNegocio: string;
-tipoActividad: string;  
-capitalInicial: number;
-rolPropietario? : string;
-usuario?: Usuario;
+export interface NegocioResponse {
+  idNegocio: string;
+  nombre: string;
+  tipoActividad: string;
+  capitalInicial: number;
+}
+
+export interface ResumenFinanciero {
+  totalIngreso: number;
+  totalEgresos: number;
+  totalGastos: number;
+  utilidad: number;
 }

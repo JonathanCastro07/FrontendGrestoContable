@@ -1,5 +1,10 @@
-export interface Periodo {
-idPeriodo?: number;
-mes?: string;
-anio?: number;
+export interface PeriodoRequest {
+  mes: string;
+  anio: number;
+}
+
+export interface PeriodoResponse {
+  idPeriodo: string;
+  mes: string;
+  anio: number;
 }
