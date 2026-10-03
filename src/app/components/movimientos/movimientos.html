@@ -13,7 +13,7 @@
   <div class="content">
 
     <div class="header">
-      <h2>Movimientos — {{ negocios[0]?.nombre }}</h2>
+      <h2>Movimientos — {{ negocios[0]?.nombreNegocio }}</h2>
       <button class="btn-nuevo" (click)="mostrarFormulario = !mostrarFormulario">
         + Nuevo Movimiento
       </button>
@@ -39,7 +39,7 @@
 
       <div class="form-group">
         <label>Descripción</label>
-        <input type="text" [(ngModel)]="nuevoMovimiento.descricion" placeholder="Descripción del movimiento"/>
+        <input type="text" [(ngModel)]="nuevoMovimiento.descripcion" placeholder="Descripción del movimiento"/>
       </div>
 
 <!-- Tipo de Movimiento -->
@@ -64,16 +64,17 @@
 </div>
 
       <!-- Origen — aparece al seleccionar tipo -->
-      <div class="form-group" *ngIf="tipoNombre">
+      <div class="form-group" *ngIf="nuevoMovimiento.tipoMovimiento?.nombre">
         <label>Nombre del Origen</label>
-       <input type="text" [(ngModel)]="origenNombre"
+       <input type="text" [(ngModel)]="origenNombre" 
+              (input)="nuevoMovimiento.origen!.nombre = origenNombre"
                  placeholder="Ej: Proveedor Juan"/>
       </div>
 
       <!-- Tipo Origen — aparece cuando hay nombre de origen -->
-      <div class="form-group" *ngIf="origenNombre">
+      <div class="form-group" *ngIf="nuevoMovimiento.origen?.nombre">
         <label>Tipo de Origen</label>
-        <select [(ngModel)]="origenTipo">
+        <select [(ngModel)]="nuevoMovimiento.origen!.tipoOrigen">
           <option value="">-- Selecciona --</option>
           <option value="PROVEEDOR">Proveedor</option>
           <option value="TRABAJADOR">Trabajador</option>
@@ -85,9 +86,9 @@
       </div>
 
       <!-- Descripción del origen -->
-      <div class="form-group" *ngIf="origenTipo">
+      <div class="form-group" *ngIf="nuevoMovimiento.origen?.tipoOrigen">
         <label>Descripción del Origen</label>
-        <input type="text" [(ngModel)]="origenNombre"
+        <input type="text" [(ngModel)]="nuevoMovimiento.origen!.descripcion"
                placeholder="Descripción adicional"/>
       </div>
 

@@ -5,9 +5,8 @@ import { CommonModule } from '@angular/common';
 import { MovimientoService } from '../../services/MovimientoService';
 import { NegocioService } from '../../services/NegocioService';
 import { TipoMovimientoService } from '../../services/Tipo-movimientoService';
-import { MovimientoFinancieroRequest, MovimientoFinancieroResponse } from '../../models/movimiento';
-import { NegocioResponse } from '../../models/negocio';
-import { NaturalezaMovimiento, TipoMovimientoRequest } from '../../models/tipo-movimiento';
+import { Movimiento } from '../../models/movimiento';
+import { Negocio } from '../../models/negocio';
 
 @Component({
   selector: 'app-ver-movimientos',
@@ -17,21 +16,20 @@ import { NaturalezaMovimiento, TipoMovimientoRequest } from '../../models/tipo-m
 })
 export class VerMovimientos implements OnInit {
 
-  movimientos: MovimientoFinancieroResponse[] = [];
-  negocios: NegocioResponse[] = [];
-  movimientoEditando: MovimientoFinancieroRequest | null = null;
-  idMovimientoEditando: string = '';
-  movimientosFiltrados: MovimientoFinancieroResponse[] = [];
+  movimientos: Movimiento[] = [];
+  negocios: Negocio[] = [];
+  movimientoEditando: Movimiento | null = null;
+  movimientosFiltrados: Movimiento[] = [];
 
   busqueda: string = '';
   mostrarEditar: boolean = false;
   tipoNombreEditar: string = '';
   naturalezaEditar: string = '';
 
-  idNegocioSeleccionado: string = '';
+  idNegocioSeleccionado: number = 0;
   error: string = '';
   exito: string = '';
-  idUsuario: string = '';
+  idUsuario: number = 0;
 
   constructor(
     private movimientoService: MovimientoService,
@@ -58,7 +56,7 @@ ngOnInit() {
             console.log('Length:', data.length); 
         if (data.length > 0) {
           this.negocios = data;
-          this.idNegocioSeleccionado = data[0].idNegocio;
+          this.idNegocioSeleccionado = data[0].idNegocio!;
           console.log('idNegocio:', this.idNegocioSeleccionado);
           this.cargarMovimientos();
         }
@@ -68,8 +66,9 @@ ngOnInit() {
   }
 
 cargarMovimientos() {
-  if (!this.idNegocioSeleccionado) return;
-  this.movimientoService.listarPorNegocio(this.idNegocioSeleccionado).subscribe({
+  const id = Number(this.idNegocioSeleccionado);
+  if (!id) return;
+  this.movimientoService.listarPorNegocio(id).subscribe({
     next: (data) => {
       this.movimientos = [...data];
       this.movimientosFiltrados = [...data];
@@ -79,11 +78,10 @@ cargarMovimientos() {
   });
 }
 
-  editarMovimiento(movimiento: MovimientoFinancieroResponse) {
+  editarMovimiento(movimiento: Movimiento) {
     this.movimientoEditando = { ...movimiento };
-    this.idMovimientoEditando = movimiento.idMovimiento;
-    this.tipoNombreEditar = movimiento.tipoId;
-    this.naturalezaEditar = '';
+    this.tipoNombreEditar = movimiento.tipoMovimiento?.nombre || '';
+    this.naturalezaEditar = movimiento.tipoMovimiento?.naturaleza || '';
     this.mostrarEditar = true;
   }
 
@@ -98,16 +96,16 @@ cargarMovimientos() {
       return;
     }
 
-    const tipo: TipoMovimientoRequest = {
+    this.movimientoEditando.tipoMovimiento = {
       nombre: this.tipoNombreEditar,
-      naturaleza: this.naturalezaEditar as NaturalezaMovimiento
+      naturaleza: this.naturalezaEditar
     };
 
-    this.tipoMovimientoService.crear(tipo).subscribe({
+    this.tipoMovimientoService.crear(this.movimientoEditando.tipoMovimiento).subscribe({
       next: (tipoGuardado) => {
-        this.movimientoEditando!.tipoId = tipoGuardado.IdTipo;
+        this.movimientoEditando!.tipoMovimiento = tipoGuardado;
         this.movimientoService.editar(
-          this.idMovimientoEditando,
+          this.movimientoEditando!.idMovimiento!,
           this.movimientoEditando!
         ).subscribe({
           next: () => {
@@ -126,7 +124,6 @@ cargarMovimientos() {
   cancelarEdicion() {
     this.mostrarEditar = false;
     this.movimientoEditando = null;
-    this.idMovimientoEditando = '';
     this.tipoNombreEditar = '';
     this.naturalezaEditar = '';
   }
@@ -138,12 +135,14 @@ cargarMovimientos() {
   }
   const texto = this.busqueda.toLowerCase();
   this.movimientosFiltrados = this.movimientos.filter(m =>
-    m.descricion?.toLowerCase().includes(texto) ||
+    m.descripcion?.toLowerCase().includes(texto) ||
+    m.tipoMovimiento?.nombre?.toLowerCase().includes(texto) ||
+    m.origen?.nombre?.toLowerCase().includes(texto) ||
     m.monto?.toString().includes(texto)
   );
 }
 
-  eliminar(id: string | undefined) {
+  eliminar(id: number | undefined) {
     if (!id) return;
     this.movimientoService.eliminar(id).subscribe({
       next: () => this.cargarMovimientos(),

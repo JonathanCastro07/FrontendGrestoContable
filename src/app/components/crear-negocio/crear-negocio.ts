@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NegocioService } from '../../services/NegocioService';
-import { NegocioRequest } from '../../models/negocio';
+import { Negocio } from '../../models/negocio';
 
 @Component({
   selector: 'app-crear-negocio',
@@ -13,17 +13,15 @@ import { NegocioRequest } from '../../models/negocio';
 })
 export class CrearNegocio {
 
-  negocio: NegocioRequest = {
+  negocio: Negocio = {
     nombreNegocio: '',
-    TipoActividad: '',
-    capitalInicial: 0
+    tipoActividad: '',
+    capitalInicial: 0,
+    rolPropietario: ''
   };
 
-  // el backend no tiene este campo, así que no se envía
-  rolPropietario: string = '';
-
   error: string = '';
-  idUsuario: string = '';
+  idUsuario: number = 0;
 
   constructor(
     private negocioService: NegocioService,
@@ -37,6 +35,12 @@ export class CrearNegocio {
   }
 
   crear() {
+    this.negocio.usuario = { 
+      idUsuario: this.idUsuario, 
+      nombre: '', 
+      correo: '', 
+      password: '' 
+    };
     this.negocioService.crear(this.negocio).subscribe({
       next: (negocioCreado) => {
         localStorage.setItem('negocio', JSON.stringify(negocioCreado));

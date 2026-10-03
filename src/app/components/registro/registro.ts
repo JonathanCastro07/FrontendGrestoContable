@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UsuarioService } from '../../services/usuarioService';
 import { CommonModule } from '@angular/common';
-import { RegistroRequest } from '../../models/usuario';
+import { Usuario } from '../../models/usuario';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -14,15 +14,12 @@ import { RouterLink } from '@angular/router';
 })
 export class Registro {
 
-  registro: RegistroRequest = {
+  usuario: Usuario = {
     nombre: '',
     correo: '',
-    password: '',
-    preguntaSeguridad: ''
+    telefono: '',
+    password: ''
   };
-
-  // el backend no tiene este campo, se queda solo en el formulario
-  telefono: string = '';
 
   error: string = '';
   exito: string = '';
@@ -33,7 +30,7 @@ export class Registro {
   ) {}
 
   registrar() {
-    this.usuarioService.registrar(this.registro).subscribe({
+    this.usuarioService.registrar(this.usuario).subscribe({
       next: () => {
         this.exito = 'Usuario registrado exitosamente';
         setTimeout(() => {

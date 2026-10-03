@@ -1,10 +1,9 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { NegocioResponse, ResumenFinanciero } from '../../models/negocio';
-import { UsuarioResponse } from '../../models/usuario';
+import { Negocio } from '../../models/negocio';
+import { Usuario } from '../../models/usuario';
 import { NegocioService } from '../../services/NegocioService';
-import { UsuarioService } from '../../services/usuarioService';
 
 @Component({
   selector: 'app-panel-negocio',
@@ -14,13 +13,12 @@ import { UsuarioService } from '../../services/usuarioService';
 })
 export class PanelNegocio implements OnInit {
 
-  negocio: NegocioResponse | null = null;
-  usuario: UsuarioResponse | null = null;
-  resumen: ResumenFinanciero | null = null;
+  negocio: Negocio | null = null;
+  usuario: Usuario | null = null;
+  resumen: any = null;
 
   constructor(private router: Router,
   private negocioService: NegocioService,
-  private usuarioService: UsuarioService,
   private cd: ChangeDetectorRef
   ) {}
 
@@ -42,30 +40,22 @@ export class PanelNegocio implements OnInit {
     }
   }
 
-  // llama al logout del backend para que el token quede en la blacklist
   cerrarSesion() {
-    this.usuarioService.logout().subscribe({
-      next: () => this.limpiarYSalir(),
-      error: () => this.limpiarYSalir()
-    });
-  }
-
-  private limpiarYSalir() {
     localStorage.removeItem('usuario');
     localStorage.removeItem('negocio');
     this.router.navigate(['/login']);
   }
 
-  cargarResumen() {
-    const id = this.negocio?.idNegocio;
-    if (!id) return;
-
-    this.negocioService.verResumenFinanciero(id).subscribe({
-      next: (data) => {
-        this.resumen = data;
-        this.cd.detectChanges();
-      },
-      error: (err) => console.log('Error:', err)
-    });
-  }
+cargarResumen() {
+  const id = this.negocio?.idNegocio;
+  if (!id) return;
+  
+  this.negocioService.verResumenFinanciero(id).subscribe({
+    next: (data) => {
+      this.resumen = { ...data };
+      this.cd.detectChanges();
+    },
+    error: (err) => console.log('Error:', err)
+  });
+}
 }

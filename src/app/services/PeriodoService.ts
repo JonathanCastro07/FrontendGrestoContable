@@ -1,34 +1,30 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { API_URL } from '../config/api';
-import { PeriodoRequest, PeriodoResponse } from '../models/periodo';
+import { Periodo } from '../models/periodo';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PeriodoService {
-  private apiUrl = `${API_URL}/periodo`;
+
+  private apiUrl = 'http://localhost:8080/api/periodo';
 
   constructor(private http: HttpClient) {}
 
-  crear(periodo: PeriodoRequest): Observable<PeriodoResponse> {
-    return this.http.post<PeriodoResponse>(this.apiUrl, periodo);
+  crear(periodo: Periodo): Observable<Periodo> {
+    return this.http.post<Periodo>(this.apiUrl, periodo);
   }
 
-  listarTodos(): Observable<PeriodoResponse[]> {
-    return this.http.get<PeriodoResponse[]>(this.apiUrl);
+  listarTodos(): Observable<Periodo[]> {
+    return this.http.get<Periodo[]>(this.apiUrl);
   }
 
-  buscarPorId(id: string): Observable<PeriodoResponse> {
-    return this.http.get<PeriodoResponse>(`${this.apiUrl}/${id}`);
+  actualizar(id: number, periodo: Periodo): Observable<Periodo> {
+    return this.http.put<Periodo>(`${this.apiUrl}/${id}`, periodo);
   }
 
-  actualizar(id: string, periodo: PeriodoRequest): Observable<PeriodoResponse> {
-    return this.http.put<PeriodoResponse>(`${this.apiUrl}/${id}`, periodo);
-  }
-
-  eliminar(id: string): Observable<void> {
+  eliminar(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

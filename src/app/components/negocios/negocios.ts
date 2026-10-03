@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NegocioService } from '../../services/NegocioService';
-import { NegocioRequest, NegocioResponse } from '../../models/negocio';
+import { Negocio } from '../../models/negocio';
 
 @Component({
   selector: 'app-negocios',
@@ -13,10 +13,10 @@ import { NegocioRequest, NegocioResponse } from '../../models/negocio';
 })
 export class Negocios implements OnInit {
 
-  negocios: NegocioResponse[] = [];
-  nuevoNegocio: NegocioRequest = {
+  negocios: Negocio[] = [];
+  nuevoNegocio: Negocio = {
     nombreNegocio: '',
-    TipoActividad: '',
+    tipoActividad: '',
     capitalInicial: 0
   };
 
@@ -24,7 +24,7 @@ export class Negocios implements OnInit {
   exito: string = '';
   mostrarFormulario: boolean = false;
 
-  idUsuario: string = '';
+  idUsuario: number = 0;
 
   constructor(private negocioService: NegocioService) {}
 
@@ -49,19 +49,20 @@ cargarNegocios() {
   });
 }
 
-  crear() {
-    this.negocioService.crear(this.nuevoNegocio).subscribe({
-      next: () => {
-        this.exito = 'Negocio creado exitosamente';
-        this.mostrarFormulario = false;
-        this.nuevoNegocio = { nombreNegocio: '', TipoActividad: '', capitalInicial: 0 };
-        setTimeout(() => this.cargarNegocios(), 500); // ← agrega el delay
-      },
-      error: () => this.error = 'Error al crear el negocio'
-    });
-  }
+crear() {
+  this.nuevoNegocio.usuario = { idUsuario: this.idUsuario, nombre: '', correo: '', password: '' };
+  this.negocioService.crear(this.nuevoNegocio).subscribe({
+    next: () => {
+      this.exito = 'Negocio creado exitosamente';
+      this.mostrarFormulario = false;
+      this.nuevoNegocio = { nombreNegocio: '', tipoActividad: '', capitalInicial: 0 };
+      setTimeout(() => this.cargarNegocios(), 500); // ← agrega el delay
+    },
+    error: () => this.error = 'Error al crear el negocio'
+  });
+}
 
-  eliminar(id: string | undefined) {
+eliminar(id: number | undefined) {
   if (!id) return;
   this.negocioService.eliminar(id).subscribe({
     next: () => this.cargarNegocios(),
