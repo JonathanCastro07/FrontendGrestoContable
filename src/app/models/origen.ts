@@ -12,7 +12,6 @@ export interface OrigenRequest {
 }
 
 export interface OrigenResponse {
-  // el id se llama "id", no "idOrigen"
   id: string;
   descripcion: string;
   tipoOrigen: TipoOrigen;

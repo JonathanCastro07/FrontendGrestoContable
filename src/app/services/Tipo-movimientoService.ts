@@ -16,7 +16,7 @@ export class TipoMovimientoService {
     return this.http.post<TipoMovimientoResponse>(this.apiUrl, tipo);
   }
 
-  listarTodos(): Observable<TipoMovimientoResponse[]> {
+  listarTodo(): Observable<TipoMovimientoResponse[]> {
     return this.http.get<TipoMovimientoResponse[]>(this.apiUrl);
   }
 

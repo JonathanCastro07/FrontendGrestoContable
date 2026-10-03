@@ -20,19 +20,23 @@ export class NegocioService {
     return this.http.get<NegocioResponse[]>(`${this.apiUrl}/usuario/${idUsuario}`);
   }
 
-  actualizar(id: string, negocio: NegocioRequest): Observable<NegocioResponse> {
-    return this.http.put<NegocioResponse>(`${this.apiUrl}/${id}`, negocio);
+  buscarPorId(idNegocio: string): Observable<NegocioResponse> {
+    return this.http.get<NegocioResponse>(`${this.apiUrl}/${idNegocio}`);
   }
 
-  eliminar(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  actualizar(idNegocio: string, negocio: NegocioRequest): Observable<NegocioResponse> {
+    return this.http.put<NegocioResponse>(`${this.apiUrl}/${idNegocio}`, negocio);
   }
 
-  calcularUtilidad(id: string): Observable<number> {
-    return this.http.get<number>(`${this.apiUrl}/${id}/utilidad`);
+  eliminar(idNegocio: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${idNegocio}`);
   }
 
-  verResumenFinanciero(id: string): Observable<ResumenFinanciero> {
-    return this.http.get<ResumenFinanciero>(`${this.apiUrl}/${id}/financiero`);
+  calcularUtilidad(idNegocio: string): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/${idNegocio}/utilidad`);
+  }
+
+  verResumenFinanciero(idNegocio: string): Observable<ResumenFinanciero> {
+    return this.http.get<ResumenFinanciero>(`${this.apiUrl}/${idNegocio}/financiero`);
   }
 }

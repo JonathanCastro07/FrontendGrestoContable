@@ -1,28 +1,23 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { UsuarioService } from '../../services/usuarioService';
 import { CommonModule } from '@angular/common';
 import { RegistroRequest } from '../../models/usuario';
-import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-registro',
-  imports: [FormsModule,RouterLink,CommonModule],
+  imports: [FormsModule, RouterLink, CommonModule],
   templateUrl: './registro.html',
   styleUrl: './registro.scss',
 })
 export class Registro {
-
   registro: RegistroRequest = {
     nombre: '',
     correo: '',
     password: '',
-    preguntaSeguridad: ''
+    preguntaSeguridad: '',
   };
-
-  // el backend no tiene este campo, se queda solo en el formulario
-  telefono: string = '';
 
   error: string = '';
   exito: string = '';
@@ -42,7 +37,7 @@ export class Registro {
       },
       error: () => {
         this.error = 'El correo ya está registrado';
-      }
+      },
     });
   }
 }

@@ -1,6 +1,4 @@
 <div class="ver-movimientos-container">
-
-
   <nav class="navbar">
     <h1>GestroContable</h1>
     <div class="nav-links">
@@ -40,20 +38,11 @@
 
       <div class="form-group">
         <label>Tipo de Movimiento</label>
-        <select [(ngModel)]="tipoNombreEditar">
+        <select [(ngModel)]="tipoSeleccionadoEditar">
           <option value="">-- Selecciona --</option>
-          <option value="INGRESO">Ingreso</option>
-          <option value="EGRESO">Egreso</option>
-          <option value="GASTO">Gasto</option>
-        </select>
-      </div>
-
-      <div class="form-group" *ngIf="tipoNombreEditar">
-        <label>Naturaleza</label>
-        <select [(ngModel)]="naturalezaEditar">
-          <option value="">-- Selecciona --</option>
-          <option value="DEBITO">Débito</option>
-          <option value="CREDITO">Crédito</option>
+          <option *ngFor="let tipo of tiposMovimiento" [value]="tipo.IdTipo">
+            {{ tipo.nombre }} ({{ tipo.naturaleza }})
+          </option>
         </select>
       </div>
 
@@ -78,7 +67,6 @@
             <th>Fecha y hora</th>
             <th>Descripción</th>
             <th>Tipo</th>
-            <th>Naturaleza</th>
             <th>Origen</th>
             <th>Monto</th>
             <th>Acciones</th>
@@ -86,10 +74,10 @@
         </thead>
         <tbody>
           <tr *ngFor="let movimiento of movimientosFiltrados">
-            <td>{{ movimiento.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ movimiento.fecha | date:'dd/MM/yyyy' }}</td>
             <td>{{ movimiento.descricion }}</td>
-            <td>{{ movimiento.tipoId }}</td>
-            <td>{{ movimiento.origenId }}</td>
+            <td>{{ nombreTipo(movimiento.tipoId) }}</td>
+            <td>{{ nombreOrigen(movimiento.origenId) }}</td>
             <td>${{ movimiento.monto }}</td>
             <td>
               <button class="btn-editar" (click)="editarMovimiento(movimiento)">
