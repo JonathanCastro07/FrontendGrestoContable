@@ -38,11 +38,38 @@
 
       <div class="form-group">
         <label>Tipo de Movimiento</label>
-        <select [(ngModel)]="tipoSeleccionadoEditar">
+        <select [(ngModel)]="tipoNombreEditar">
           <option value="">-- Selecciona --</option>
-          <option *ngFor="let tipo of tiposMovimiento" [value]="tipo.IdTipo">
-            {{ tipo.nombre }} ({{ tipo.naturaleza }})
-          </option>
+          <option value="INGRESO">Ingreso</option>
+          <option value="EGRESO">Egreso</option>
+          <option value="GASTO">Gasto</option>
+        </select>
+      </div>
+
+      <div class="form-group" *ngIf="tipoNombreEditar">
+        <label>Naturaleza</label>
+        <select [(ngModel)]="naturalezaEditar">
+          <option value="">-- Selecciona --</option>
+          <option value="DEBITO">Débito</option>
+          <option value="CREDITO">Crédito</option>
+        </select>
+      </div>
+
+      <div class="form-group" *ngIf="tipoNombreEditar">
+        <label>Descripción del Origen</label>
+        <input type="text" [(ngModel)]="origenDescripcionEditar" placeholder="Ej: Proveedor Juan"/>
+      </div>
+
+      <div class="form-group" *ngIf="origenDescripcionEditar">
+        <label>Tipo de Origen</label>
+        <select [(ngModel)]="origenTipoEditar">
+          <option value="">-- Selecciona --</option>
+          <option value="PROVEEDOR">Proveedor</option>
+          <option value="TRABAJADOR">Trabajador</option>
+          <option value="SERVICIO_PUBLICO">Servicio Público</option>
+          <option value="FACTURA">Factura</option>
+          <option value="CLIENTE">Cliente</option>
+          <option value="OTRO">Otro</option>
         </select>
       </div>
 
@@ -61,6 +88,7 @@
 
 
     <div class="movimientos-lista" *ngIf="movimientosFiltrados.length > 0">
+      <h3>Movimientos</h3>
       <table>
         <thead>
           <tr>
@@ -92,9 +120,45 @@
       </table>
     </div>
 
-
     <div class="sin-movimientos" *ngIf="movimientosFiltrados.length === 0">
       <p>No hay movimientos registrados.</p>
+    </div>
+
+
+    <div class="pagos-periodicos-lista" *ngIf="pagosPeriodicos.length > 0">
+      <h3>Pagos Periódicos</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Próxima fecha</th>
+            <th>Tipo</th>
+            <th>Origen</th>
+            <th>Monto</th>
+            <th>Activo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pago of pagosPeriodicos">
+            <td>{{ pago.nombre }}</td>
+            <td>{{ pago.fecha| date:'dd/MM/yyyy' }}</td>
+            <td>{{ nombreTipo(pago.tipoMovimientoId) }}</td>
+            <td>{{ nombreOrigen(pago.origenId) }}</td>
+            <td>${{ pago.monto }}</td>
+            <td>{{ pago.activo ? 'Sí' : 'No' }}</td>
+            <td>
+              <button class="btn-eliminar" (click)="eliminarPagoPeriodico(pago.id)">
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sin-movimientos" *ngIf="pagosPeriodicos.length === 0">
+      <p>No hay pagos periódicos registrados.</p>
     </div>
 
   </div>

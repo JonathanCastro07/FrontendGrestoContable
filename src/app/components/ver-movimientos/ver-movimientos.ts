@@ -6,10 +6,12 @@ import { MovimientoService } from '../../services/MovimientoService';
 import { NegocioService } from '../../services/NegocioService';
 import { TipoMovimientoService } from '../../services/Tipo-movimientoService';
 import { OrigenService } from '../../services/OrigenService';
+import { PagoPeriodicoService } from '../../services/PagoPeriodicoService';
 import { MovimientoFinancieroRequest, MovimientoFinancieroResponse } from '../../models/movimiento';
 import { NegocioResponse } from '../../models/negocio';
-import { TipoMovimientoResponse } from '../../models/tipo-movimiento';
-import { OrigenResponse } from '../../models/origen';
+import { TipoMovimientoResponse, TipoMovimientoRequest, NaturalezaMovimiento } from '../../models/tipo-movimiento';
+import { OrigenResponse, OrigenRequest, TipoOrigen } from '../../models/origen';
+import { PagoPeriodicoResponse } from '../../models/pago-periodico';
 
 @Component({
   selector: 'app-ver-movimientos',
@@ -23,6 +25,7 @@ export class VerMovimientos implements OnInit {
   negocios: NegocioResponse[] = [];
   tiposMovimiento: TipoMovimientoResponse[] = [];
   origenes: OrigenResponse[] = [];
+  pagosPeriodicos: PagoPeriodicoResponse[] = [];
 
   movimientoEditando: MovimientoFinancieroRequest | null = null;
   idMovimientoEditando: string = '';
@@ -30,7 +33,12 @@ export class VerMovimientos implements OnInit {
 
   busqueda: string = '';
   mostrarEditar: boolean = false;
-  tipoSeleccionadoEditar: string = '';
+
+  // Campos para crear un Tipo y Origen nuevos al editar
+  tipoNombreEditar: string = '';
+  naturalezaEditar: string = '';
+  origenDescripcionEditar: string = '';
+  origenTipoEditar: TipoOrigen | '' = '';
 
   idNegocioSeleccionado: string = '';
   error: string = '';
@@ -42,6 +50,7 @@ export class VerMovimientos implements OnInit {
     private negocioService: NegocioService,
     private tipoMovimientoService: TipoMovimientoService,
     private origenService: OrigenService,
+    private pagoPeriodicoService: PagoPeriodicoService,
     private cd: ChangeDetectorRef
   ) {}
 
@@ -73,6 +82,7 @@ export class VerMovimientos implements OnInit {
           this.negocios = data;
           this.idNegocioSeleccionado = data[0].idNegocio;
           this.cargarMovimientos();
+          this.cargarPagosPeriodicos();
         }
       },
       error: () => this.error = 'Error al cargar el negocio'
@@ -91,6 +101,17 @@ export class VerMovimientos implements OnInit {
     });
   }
 
+  cargarPagosPeriodicos() {
+    if (!this.idNegocioSeleccionado) return;
+    this.pagoPeriodicoService.listarPorNegocio(this.idNegocioSeleccionado).subscribe({
+      next: (data) => {
+        this.pagosPeriodicos = [...data];
+        this.cd.detectChanges();
+      },
+      error: () => this.error = 'Error al cargar pagos periódicos'
+    });
+  }
+
   nombreTipo(id: string): string {
     const tipo = this.tiposMovimiento.find(t => t.IdTipo === id);
     return tipo ? `${tipo.nombre} (${tipo.naturaleza})` : '—';
@@ -104,30 +125,65 @@ export class VerMovimientos implements OnInit {
   editarMovimiento(movimiento: MovimientoFinancieroResponse) {
     this.movimientoEditando = { ...movimiento };
     this.idMovimientoEditando = movimiento.idMovimiento;
-    this.tipoSeleccionadoEditar = movimiento.tipoId;
+    this.tipoNombreEditar = '';
+    this.naturalezaEditar = '';
+    this.origenDescripcionEditar = '';
+    this.origenTipoEditar = '';
     this.mostrarEditar = true;
   }
 
   guardarEdicion() {
     if (!this.movimientoEditando) return;
-    if (!this.tipoSeleccionadoEditar) {
-      this.error = 'Selecciona un tipo de movimiento';
+
+    if (!this.tipoNombreEditar || !this.naturalezaEditar) {
+      this.error = 'Completa el tipo de movimiento y la naturaleza';
+      return;
+    }
+    if (!this.origenDescripcionEditar || !this.origenTipoEditar) {
+      this.error = 'Completa la descripción y el tipo del origen';
       return;
     }
 
-    this.movimientoEditando.tipoId = this.tipoSeleccionadoEditar;
+    this.error = '';
 
-    this.movimientoService.editarMovimiento(
-      this.idMovimientoEditando,
-      this.movimientoEditando
-    ).subscribe({
-      next: () => {
-        this.exito = 'Movimiento actualizado exitosamente';
-        this.mostrarEditar = false;
-        this.movimientoEditando = null;
-        this.cargarMovimientos();
+    const tipo: TipoMovimientoRequest = {
+      nombre: this.tipoNombreEditar,
+      naturaleza: this.naturalezaEditar as NaturalezaMovimiento
+    };
+
+    this.tipoMovimientoService.crear(tipo).subscribe({
+      next: (tipoGuardado) => {
+        this.tiposMovimiento.push(tipoGuardado);
+
+        const origen: OrigenRequest = {
+          descripcion: this.origenDescripcionEditar,
+          tipoOrigen: this.origenTipoEditar as TipoOrigen
+        };
+
+        this.origenService.crear(origen).subscribe({
+          next: (origenGuardado) => {
+            this.origenes.push(origenGuardado);
+
+            this.movimientoEditando!.tipoId = tipoGuardado.IdTipo;
+            this.movimientoEditando!.origenId = origenGuardado.id;
+
+            this.movimientoService.editarMovimiento(
+              this.idMovimientoEditando,
+              this.movimientoEditando!
+            ).subscribe({
+              next: () => {
+                this.exito = 'Movimiento actualizado exitosamente';
+                this.mostrarEditar = false;
+                this.movimientoEditando = null;
+                this.cargarMovimientos();
+              },
+              error: () => this.error = 'Error al editar el movimiento'
+            });
+          },
+          error: () => this.error = 'Error al guardar el origen'
+        });
       },
-      error: () => this.error = 'Error al editar el movimiento'
+      error: () => this.error = 'Error al guardar el tipo'
     });
   }
 
@@ -135,7 +191,10 @@ export class VerMovimientos implements OnInit {
     this.mostrarEditar = false;
     this.movimientoEditando = null;
     this.idMovimientoEditando = '';
-    this.tipoSeleccionadoEditar = '';
+    this.tipoNombreEditar = '';
+    this.naturalezaEditar = '';
+    this.origenDescripcionEditar = '';
+    this.origenTipoEditar = '';
   }
 
   buscar() {
@@ -155,6 +214,14 @@ export class VerMovimientos implements OnInit {
     this.movimientoService.eliminarMovimiento(id).subscribe({
       next: () => this.cargarMovimientos(),
       error: () => this.error = 'Error al eliminar el movimiento'
+    });
+  }
+
+  eliminarPagoPeriodico(id: string | undefined) {
+    if (!id) return;
+    this.pagoPeriodicoService.eliminar(id).subscribe({
+      next: () => this.cargarPagosPeriodicos(),
+      error: () => this.error = 'Error al eliminar el pago periódico'
     });
   }
 }

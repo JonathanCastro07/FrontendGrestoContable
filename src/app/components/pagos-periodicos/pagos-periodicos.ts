@@ -9,8 +9,12 @@ import {
   PagoPeriodicoRequest,
   PagoPeriodicoResponse,
 } from '../../models/pago-periodico';
-import { TipoMovimientoResponse } from '../../models/tipo-movimiento';
-import { OrigenResponse } from '../../models/origen';
+import {
+  NaturalezaMovimiento,
+  TipoMovimientoRequest,
+  TipoMovimientoResponse,
+} from '../../models/tipo-movimiento';
+import { OrigenRequest, OrigenResponse, TipoOrigen } from '../../models/origen';
 import { NegocioResponse } from '../../models/negocio';
 
 @Component({
@@ -22,6 +26,8 @@ import { NegocioResponse } from '../../models/negocio';
 export class PagosPeriodicos implements OnInit {
 
   pagos: PagoPeriodicoResponse[] = [];
+
+  // se guardan solo para poder mostrar el nombre en la tabla de abajo
   tiposMovimiento: TipoMovimientoResponse[] = [];
   origenes: OrigenResponse[] = [];
 
@@ -39,6 +45,14 @@ export class PagosPeriodicos implements OnInit {
     origenId: '',
   };
 
+  // campos para crear el Tipo de Movimiento nuevo
+  nuevoTipoNombre: string = '';
+  nuevaNaturaleza: string = '';
+
+  // campos para crear el Origen nuevo
+  nuevoOrigenDescripcion: string = '';
+  nuevoOrigenTipo: TipoOrigen | '' = '';
+
   constructor(
     private pagoPeriodicoService: PagoPeriodicoService,
     private tipoMovimientoService: TipoMovimientoService,
@@ -52,20 +66,12 @@ export class PagosPeriodicos implements OnInit {
       this.idNegocio = negocio.idNegocio;
       this.cargarPagos();
     }
-    this.cargarCatalogos();
-  }
-
-  // trae los tipos de movimiento y orígenes YA creados, para elegir
-  // de una lista en vez de crear uno nuevo cada vez
-  cargarCatalogos() {
+    // solo para poder mostrar nombres en la tabla, no para elegir
     this.tipoMovimientoService.listarTodo().subscribe({
-      next: (data) => this.tiposMovimiento = data,
-      error: () => this.error = 'Error al cargar los tipos de movimiento'
+      next: (data) => this.tiposMovimiento = data
     });
-
     this.origenService.listar().subscribe({
-      next: (data) => this.origenes = data,
-      error: () => this.error = 'Error al cargar los orígenes'
+      next: (data) => this.origenes = data
     });
   }
 
@@ -78,37 +84,74 @@ export class PagosPeriodicos implements OnInit {
   }
 
   registrar() {
+    this.error = '';
+    this.exito = '';
+
     if (!this.nuevoPago.nombre || !this.nuevoPago.monto || !this.nuevoPago.fecha) {
       this.error = 'Completa nombre, monto y fecha';
       return;
     }
-    if (!this.nuevoPago.tipoMovimientoId) {
-      this.error = 'Selecciona un tipo de movimiento';
+    if (!this.nuevoTipoNombre || !this.nuevaNaturaleza) {
+      this.error = 'Completa el nombre y la naturaleza del tipo de movimiento';
       return;
     }
-    if (!this.nuevoPago.origenId) {
-      this.error = 'Selecciona un origen';
+    if (!this.nuevoOrigenDescripcion || !this.nuevoOrigenTipo) {
+      this.error = 'Completa la descripción y el tipo del origen';
       return;
     }
 
-    this.nuevoPago.negocioId = this.idNegocio;
+    const tipo: TipoMovimientoRequest = {
+      nombre: this.nuevoTipoNombre,
+      naturaleza: this.nuevaNaturaleza as NaturalezaMovimiento
+    };
 
-    this.pagoPeriodicoService.crear(this.nuevoPago).subscribe({
-      next: () => {
-        this.exito = 'Pago periódico registrado exitosamente';
-        this.mostrarFormulario = false;
-        this.nuevoPago = {
-          nombre: '',
-          monto: 0,
-          fecha: '',
-          negocioId: '',
-          tipoMovimientoId: '',
-          origenId: '',
+    this.tipoMovimientoService.crear(tipo).subscribe({
+      next: (tipoGuardado) => {
+        this.tiposMovimiento.push(tipoGuardado);
+
+        const origen: OrigenRequest = {
+          descripcion: this.nuevoOrigenDescripcion,
+          tipoOrigen: this.nuevoOrigenTipo as TipoOrigen
         };
-        this.cargarPagos();
+
+        this.origenService.crear(origen).subscribe({
+          next: (origenGuardado) => {
+            this.origenes.push(origenGuardado);
+
+            this.nuevoPago.negocioId = this.idNegocio;
+            this.nuevoPago.tipoMovimientoId = tipoGuardado.IdTipo;
+            this.nuevoPago.origenId = origenGuardado.id;
+
+            this.pagoPeriodicoService.crear(this.nuevoPago).subscribe({
+              next: () => {
+                this.exito = 'Pago periódico registrado exitosamente';
+                this.mostrarFormulario = false;
+                this.resetFormulario();
+                this.cargarPagos();
+              },
+              error: () => this.error = 'Error al registrar el pago periódico'
+            });
+          },
+          error: () => this.error = 'Error al guardar el origen'
+        });
       },
-      error: () => this.error = 'Error al registrar el pago periódico'
+      error: () => this.error = 'Error al guardar el tipo'
     });
+  }
+
+  private resetFormulario() {
+    this.nuevoTipoNombre = '';
+    this.nuevaNaturaleza = '';
+    this.nuevoOrigenDescripcion = '';
+    this.nuevoOrigenTipo = '';
+    this.nuevoPago = {
+      nombre: '',
+      monto: 0,
+      fecha: '',
+      negocioId: '',
+      tipoMovimientoId: '',
+      origenId: '',
+    };
   }
 
   ejecutar(id: string) {
