@@ -39,29 +39,40 @@
       </div>
 
       <div class="form-group">
-        <label>Tipo de Movimiento</label>
-        <select [(ngModel)]="nuevoPago.tipoMovimientoId">
+        <label>Nombre del Tipo de Movimiento</label>
+        <select [(ngModel)]="nuevoTipoNombre">
           <option value="">-- Selecciona --</option>
-          <option *ngFor="let tipo of tiposMovimiento" [value]="tipo.IdTipo">
-            {{ tipo.nombre }} ({{ tipo.naturaleza }})
-          </option>
+          <option value="INGRESO">Ingreso</option>
+          <option value="EGRESO">Egreso</option>
+          <option value="GASTO">Gasto</option>
         </select>
-        <small *ngIf="tiposMovimiento.length === 0">
-          No hay tipos de movimiento todavía. Crea un movimiento primero.
-        </small>
       </div>
 
       <div class="form-group">
-        <label>Origen</label>
-        <select [(ngModel)]="nuevoPago.origenId">
+        <label>Naturaleza</label>
+        <select [(ngModel)]="nuevaNaturaleza">
           <option value="">-- Selecciona --</option>
-          <option *ngFor="let origen of origenes" [value]="origen.id">
-            {{ origen.descripcion }} ({{ origen.tipoOrigen }})
-          </option>
+          <option value="DEBITO">Débito</option>
+          <option value="CREDITO">Crédito</option>
         </select>
-        <small *ngIf="origenes.length === 0">
-          No hay orígenes todavía. Crea un movimiento primero.
-        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Descripción del Origen</label>
+        <input type="text" [(ngModel)]="nuevoOrigenDescripcion" placeholder="Ej: Proveedor Juan"/>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo de Origen</label>
+        <select [(ngModel)]="nuevoOrigenTipo">
+          <option value="">-- Selecciona --</option>
+          <option value="PROVEEDOR">Proveedor</option>
+          <option value="TRABAJADOR">Trabajador</option>
+          <option value="SERVICIO_PUBLICO">Servicio Público</option>
+          <option value="FACTURA">Factura</option>
+          <option value="CLIENTE">Cliente</option>
+          <option value="OTRO">Otro</option>
+        </select>
       </div>
 
       <div class="form-buttons">
