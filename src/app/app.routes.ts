@@ -6,17 +6,27 @@ import { PanelNegocio } from './components/panel-negocio/panel-negocio';
 import { Movimientos } from './components/movimientos/movimientos';
 import { VerMovimientos } from './components/ver-movimientos/ver-movimientos';
 import { Configuracion } from './components/configuracion/configuracion';
-import { authGuard } from './core/auth.guard';
+import { RecuperarPassword } from './components/recuperar-password/recuperar-password';
 import { PagosPeriodicos } from './components/pagos-periodicos/pagos-periodicos';
+import { ReportePeriodo } from './components/reporte-periodo/reporte-periodo';
+import { authGuard } from './services/AuthGuard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
+
+  // Públicas
   { path: 'login', component: Login },
   { path: 'registro', component: Registro },
-  { path: 'crear-negocio', component: CrearNegocio },
+  { path: 'recuperar-password', component: RecuperarPassword },
+
+  // Protegidas (requieren sesión con token vigente)
+  { path: 'crear-negocio', component: CrearNegocio, canActivate: [authGuard] },
   { path: 'panel', component: PanelNegocio, canActivate: [authGuard] },
   { path: 'movimientos', component: Movimientos, canActivate: [authGuard] },
   { path: 'ver-movimientos', component: VerMovimientos, canActivate: [authGuard] },
   { path: 'configuracion', component: Configuracion, canActivate: [authGuard] },
   { path: 'pagos-periodicos', component: PagosPeriodicos, canActivate: [authGuard] },
-]
+  { path: 'reporte-periodo', component: ReportePeriodo, canActivate: [authGuard] },
+
+  { path: '**', redirectTo: 'login' },
+];
