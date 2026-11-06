@@ -2,9 +2,9 @@
   <div class="registro-box">
 
     <h2>GestroContable</h2>
-    <p class="subtitle">Crea tu cuenta</p>
+    <p class="subtitle">Crea tu cuenta y tu negocio</p>
 
-      
+
     <div class="error-message" *ngIf="error">
       {{ error }}
     </div>
@@ -14,6 +14,7 @@
       {{ exito }}
     </div>
 
+    <h3 class="seccion-titulo">Tus datos</h3>
 
     <div class="form-group">
       <label>Nombre</label>
@@ -34,11 +35,11 @@
     </div>
 
     <div class="form-group">
-      <label>Pregunta de seguridad</label>
+      <label>Teléfono</label>
       <input
         type="text"
-        [(ngModel)]="registro.preguntaSeguridad"
-        placeholder="¿Cuál fue tu primera mascota?"
+        [(ngModel)]="registro.telefono"
+        placeholder="3001234567"
       />
     </div>
 
@@ -48,6 +49,70 @@
         type="password"
         [(ngModel)]="registro.password"
         placeholder="••••••••"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Pregunta de seguridad</label>
+      <input
+        type="text"
+        [(ngModel)]="registro.preguntaSeguridad"
+        placeholder="¿Cuál fue tu primera mascota?"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Respuesta de seguridad</label>
+      <input
+        type="text"
+        [(ngModel)]="registro.respuestaSeguridad"
+        placeholder="Tu respuesta secreta"
+      />
+    </div>
+
+    <h3 class="seccion-titulo">Tu negocio</h3>
+
+    <div class="form-group">
+      <label>Nombre del negocio</label>
+      <input
+        type="text"
+        [(ngModel)]="registro.nombreNegocio"
+        placeholder="Ej: Tienda La Esperanza"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Tipo de actividad</label>
+      <select [(ngModel)]="registro.tipoActividad">
+        <option value="">-- Selecciona --</option>
+        <option value="Comercio">Comercio</option>
+        <option value="Servicios">Servicios</option>
+        <option value="Manufactura">Manufactura</option>
+        <option value="Restaurante">Restaurante</option>
+        <option value="Tecnología">Tecnología</option>
+        <option value="Educación">Educación</option>
+        <option value="Salud">Salud</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>¿Cuál es tu rol en el negocio?</label>
+      <select [(ngModel)]="registro.rolPropietario">
+        <option value="">-- Selecciona --</option>
+        <option value="Propietario">Propietario</option>
+        <option value="Administrador">Administrador</option>
+        <option value="Contador">Contador</option>
+        <option value="Socio">Socio</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Capital inicial</label>
+      <input
+        type="number"
+        [(ngModel)]="registro.capitalInicial"
+        placeholder="0"
       />
     </div>
 

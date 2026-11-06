@@ -6,13 +6,9 @@ export type TipoOrigen =
   | 'CLIENTE'
   | 'OTRO';
 
-export interface OrigenRequest {
-  descripcion: string;
-  tipoOrigen: TipoOrigen;
-}
-
-export interface OrigenResponse {
-  id: string;
-  descripcion: string;
+// El origen va embebido dentro del movimiento o del pago periódico
+export interface OrigenDto {
+  id?: string;
+  nombre: string;
   tipoOrigen: TipoOrigen;
 }

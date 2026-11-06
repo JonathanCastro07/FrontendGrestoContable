@@ -4,7 +4,8 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UsuarioService } from '../../services/usuarioService';
 import { NegocioService } from '../../services/NegocioService';
-import { UsuarioResponse, RegistroRequest } from '../../models/usuario';
+import { AuthService } from '../../services/AuthService';
+import { UsuarioSesion } from '../../models/usuario';
 import { NegocioResponse } from '../../models/negocio';
 
 @Component({
@@ -14,7 +15,7 @@ import { NegocioResponse } from '../../models/negocio';
   styleUrl: './configuracion.scss',
 })
 export class Configuracion implements OnInit {
-  usuario: UsuarioResponse | null = null;
+  usuario: UsuarioSesion | null = null;
   negocio: NegocioResponse | null = null;
 
   nuevoCorreo: string = '';
@@ -31,15 +32,13 @@ export class Configuracion implements OnInit {
   constructor(
     private usuarioService: UsuarioService,
     private negocioService: NegocioService,
+    private auth: AuthService,
     private router: Router
   ) {}
 
   ngOnInit() {
-    const dataUsuario = localStorage.getItem('usuario');
-    const dataNegocio = localStorage.getItem('negocio');
-
-    if (dataUsuario) this.usuario = JSON.parse(dataUsuario);
-    if (dataNegocio) this.negocio = JSON.parse(dataNegocio);
+    this.usuario = this.auth.getUsuario();
+    this.negocio = this.auth.getNegocio();
 
     if (!this.usuario) this.router.navigate(['/login']);
   }
@@ -63,26 +62,15 @@ export class Configuracion implements OnInit {
       return;
     }
 
-    const id = this.usuario?.idUsuario;
-    if (!id) return;
-
-    const usuarioActualizado: RegistroRequest = {
-      nombre: this.usuario!.nombre,
-      correo: this.nuevoCorreo,
-      password: '',
-      preguntaSeguridad: '',
-    };
-
-    this.usuarioService.actualizar(id, usuarioActualizado).subscribe({
-      next: (data) => {
-        localStorage.setItem('usuario', JSON.stringify(data));
-        this.usuario = data;
-        this.exito = 'Correo actualizado exitosamente';
-        this.nuevoCorreo = '';
-        this.confirmarCorreo = '';
+    this.usuarioService.cambiarCorreo(this.nuevoCorreo).subscribe({
+      next: () => {
+        // El token está firmado con el correo anterior: hay que iniciar sesión de nuevo
+        alert('Correo actualizado. Inicia sesión con tu nuevo correo.');
+        this.auth.limpiarSesion();
+        this.router.navigate(['/login']);
       },
       error: () => {
-        this.error = 'Error al actualizar el correo';
+        this.error = 'Error al actualizar el correo (¿ya está en uso?)';
       },
     });
   }
@@ -104,43 +92,51 @@ export class Configuracion implements OnInit {
       return;
     }
 
-    const id = this.usuario?.idUsuario;
-    if (!id) return;
-
-    const usuarioActualizado: RegistroRequest = {
-      nombre: this.usuario!.nombre,
-      correo: this.usuario!.correo,
-      password: this.nuevaPassword,
-      preguntaSeguridad: '',
-    };
-
-    this.usuarioService.actualizar(id, usuarioActualizado).subscribe({
-      next: (data) => {
-        localStorage.setItem('usuario', JSON.stringify(data));
-        this.usuario = data;
+    // La contraseña actual la valida el backend
+    this.usuarioService.cambiarPassword(this.passwordActual, this.nuevaPassword).subscribe({
+      next: () => {
         this.exito = 'Contraseña actualizada exitosamente';
         this.passwordActual = '';
         this.nuevaPassword = '';
         this.confirmarPassword = '';
       },
       error: () => {
-        this.error = 'Error al actualizar la contraseña';
+        this.error = 'La contraseña actual no es correcta';
       },
     });
   }
 
   borrarNegocio() {
-    if (!confirm('¿Estás seguro de que quieres borrar tu negocio? Esta acción no se puede deshacer.')) return;
-    const id = this.negocio?.idNegocio;
-    if (!id) return;
+    const idActual = this.negocio?.idNegocio;
+    if (!idActual) return;
 
-    this.negocioService.eliminar(id).subscribe({
-      next: () => {
-        localStorage.removeItem('negocio');
-        this.router.navigate(['/crear-negocio']);
+    this.negocioService.misNegocios().subscribe({
+      next: (lista) => {
+        // El usuario va embebido en el negocio: si es el único, se pierde también la cuenta
+        const esUnico = lista.length <= 1;
+        const aviso = esUnico
+          ? 'Este es tu único negocio. Si lo borras también se elimina tu cuenta. Esta acción no se puede deshacer. ¿Continuar?'
+          : '¿Estás seguro de que quieres borrar este negocio? Esta acción no se puede deshacer.';
+        if (!confirm(aviso)) return;
+
+        this.negocioService.eliminar(idActual).subscribe({
+          next: () => {
+            if (esUnico) {
+              this.auth.limpiarSesion();
+              this.router.navigate(['/login']);
+            } else {
+              const restantes = lista.filter((n) => n.idNegocio !== idActual);
+              this.auth.guardarNegocio(restantes[0]);
+              this.router.navigate(['/panel']);
+            }
+          },
+          error: () => {
+            this.error = 'Error al borrar el negocio';
+          },
+        });
       },
       error: () => {
-        this.error = 'Error al borrar el negocio';
+        this.error = 'Error al consultar tus negocios';
       },
     });
   }

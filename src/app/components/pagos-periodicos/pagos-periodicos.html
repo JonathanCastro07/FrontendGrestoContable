@@ -58,8 +58,8 @@
       </div>
 
       <div class="form-group">
-        <label>Descripción del Origen</label>
-        <input type="text" [(ngModel)]="nuevoOrigenDescripcion" placeholder="Ej: Proveedor Juan"/>
+        <label>Nombre del Origen</label>
+        <input type="text" [(ngModel)]="nuevoOrigenNombre" placeholder="Ej: Proveedor Juan"/>
       </div>
 
       <div class="form-group">
@@ -99,8 +99,8 @@
             <td>{{ pago.nombre }}</td>
             <td>{{ pago.monto | currency }}</td>
             <td>{{ pago.fecha }}</td>
-            <td>{{ nombreTipo(pago.tipoMovimientoId) }}</td>
-            <td>{{ nombreOrigen(pago.origenId) }}</td>
+            <td>{{ pago.tipoMovimiento.nombre }}</td>
+            <td>{{ pago.origen.nombre }}</td>
             <td>{{ pago.activo ? 'Sí' : 'No' }}</td>
             <td>
               <button class="btn-guardar" (click)="ejecutar(pago.id)">Ejecutar</button>

@@ -16,12 +16,9 @@ export class NegocioService {
     return this.http.post<NegocioResponse>(`${this.apiUrl}/crear`, negocio);
   }
 
-  listarPorUsuario(idUsuario: string): Observable<NegocioResponse[]> {
-    return this.http.get<NegocioResponse[]>(`${this.apiUrl}/usuario/${idUsuario}`);
-  }
-
-  buscarPorId(idNegocio: string): Observable<NegocioResponse> {
-    return this.http.get<NegocioResponse>(`${this.apiUrl}/${idNegocio}`);
+  // Negocios del usuario autenticado (el backend lo saca del token)
+  misNegocios(): Observable<NegocioResponse[]> {
+    return this.http.get<NegocioResponse[]>(`${this.apiUrl}/mis-negocios`);
   }
 
   actualizar(idNegocio: string, negocio: NegocioRequest): Observable<NegocioResponse> {

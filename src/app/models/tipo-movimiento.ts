@@ -1,12 +1,8 @@
 export type NaturalezaMovimiento = 'DEBITO' | 'CREDITO';
 
-export interface TipoMovimientoRequest {
+// El tipo de movimiento va embebido dentro del movimiento o del pago periódico
+export interface TipoMovimientoDto {
+  id?: string;
   nombre: string;
   naturaleza: NaturalezaMovimiento;
-}
-
-export interface TipoMovimientoResponse {
-  IdTipo: string;
-  nombre: string;
-  naturaleza: string;
 }

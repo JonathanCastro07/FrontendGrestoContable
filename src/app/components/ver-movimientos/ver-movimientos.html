@@ -56,11 +56,11 @@
       </div>
 
       <div class="form-group" *ngIf="tipoNombreEditar">
-        <label>Descripción del Origen</label>
-        <input type="text" [(ngModel)]="origenDescripcionEditar" placeholder="Ej: Proveedor Juan"/>
+        <label>Nombre del Origen</label>
+        <input type="text" [(ngModel)]="origenNombreEditar" placeholder="Ej: Proveedor Juan"/>
       </div>
 
-      <div class="form-group" *ngIf="origenDescripcionEditar">
+      <div class="form-group" *ngIf="origenNombreEditar">
         <label>Tipo de Origen</label>
         <select [(ngModel)]="origenTipoEditar">
           <option value="">-- Selecciona --</option>
@@ -104,8 +104,8 @@
           <tr *ngFor="let movimiento of movimientosFiltrados">
             <td>{{ movimiento.fecha | date:'dd/MM/yyyy' }}</td>
             <td>{{ movimiento.descricion }}</td>
-            <td>{{ nombreTipo(movimiento.tipoId) }}</td>
-            <td>{{ nombreOrigen(movimiento.origenId) }}</td>
+            <td>{{ movimiento.tipoMovimiento.nombre }} ({{ movimiento.tipoMovimiento.naturaleza }})</td>
+            <td>{{ movimiento.origen.nombre }}</td>
             <td>${{ movimiento.monto }}</td>
             <td>
               <button class="btn-editar" (click)="editarMovimiento(movimiento)">
@@ -143,8 +143,8 @@
           <tr *ngFor="let pago of pagosPeriodicos">
             <td>{{ pago.nombre }}</td>
             <td>{{ pago.fecha| date:'dd/MM/yyyy' }}</td>
-            <td>{{ nombreTipo(pago.tipoMovimientoId) }}</td>
-            <td>{{ nombreOrigen(pago.origenId) }}</td>
+            <td>{{ pago.tipoMovimiento.nombre }} ({{ pago.tipoMovimiento.naturaleza }})</td>
+            <td>{{ pago.origen.nombre }}</td>
             <td>${{ pago.monto }}</td>
             <td>{{ pago.activo ? 'Sí' : 'No' }}</td>
             <td>
