@@ -41,7 +41,8 @@
     margin-bottom: 6px;
   }
 
-  input {
+  input,
+  select {
     width: 100%;
     padding: 10px 14px;
     border: 1px solid #d1d5db;
@@ -105,5 +106,19 @@
     &:hover {
       text-decoration: underline;
     }
+  }
+}
+
+.seccion-titulo {
+  text-align: left;
+  margin: 24px 0 12px;
+  padding-bottom: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a3c5e;
+  border-bottom: 1px solid #e5e7eb;
+
+  &:first-of-type {
+    margin-top: 0;
   }
 }

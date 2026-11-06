@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NegocioService } from '../../services/NegocioService';
+import { AuthService } from '../../services/AuthService';
 import { NegocioRequest, NegocioResponse } from '../../models/negocio';
 
 @Component({
@@ -24,21 +25,18 @@ export class Negocios implements OnInit {
   mostrarFormulario: boolean = false;
   tieneNegocio: boolean = false;
 
-  idUsuario: string = '';
-
-  constructor(private negocioService: NegocioService) {}
+  constructor(
+    private negocioService: NegocioService,
+    private auth: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    const data = localStorage.getItem('usuario');
-    if (data) {
-      const usuario = JSON.parse(data);
-      this.idUsuario = usuario.idUsuario;
-      this.cargarNegocios();
-    }
+    this.cargarNegocios();
   }
 
   cargarNegocios() {
-    this.negocioService.listarPorUsuario(this.idUsuario).subscribe({
+    this.negocioService.misNegocios().subscribe({
       next: (data) => {
         this.negocios = data;
         this.tieneNegocio = data.length > 0;
@@ -59,7 +57,7 @@ export class Negocios implements OnInit {
           TipoActividad: '',
           capitalInicial: 0,
         };
-        setTimeout(() => this.cargarNegocios(), 500);
+        this.cargarNegocios();
       },
       error: () => {
         this.error = 'Error al crear el negocio';
@@ -69,8 +67,23 @@ export class Negocios implements OnInit {
 
   eliminar(id: string | undefined) {
     if (!id) return;
+
+    // El usuario va embebido en el negocio: si es su único negocio, se pierde también la cuenta
+    const esUnico = this.negocios.length === 1;
+    const aviso = esUnico
+      ? 'Este es tu único negocio. Si lo eliminas también se elimina tu cuenta. ¿Continuar?'
+      : '¿Seguro que quieres eliminar este negocio?';
+    if (!confirm(aviso)) return;
+
     this.negocioService.eliminar(id).subscribe({
-      next: () => this.cargarNegocios(),
+      next: () => {
+        if (esUnico) {
+          this.auth.limpiarSesion();
+          this.router.navigate(['/login']);
+        } else {
+          this.cargarNegocios();
+        }
+      },
       error: () => {
         this.error = 'Error al eliminar el negocio';
       },

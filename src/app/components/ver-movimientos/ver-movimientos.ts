@@ -4,13 +4,11 @@ import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MovimientoService } from '../../services/MovimientoService';
 import { NegocioService } from '../../services/NegocioService';
-import { TipoMovimientoService } from '../../services/Tipo-movimientoService';
-import { OrigenService } from '../../services/OrigenService';
 import { PagoPeriodicoService } from '../../services/PagoPeriodicoService';
 import { MovimientoFinancieroRequest, MovimientoFinancieroResponse } from '../../models/movimiento';
 import { NegocioResponse } from '../../models/negocio';
-import { TipoMovimientoResponse, TipoMovimientoRequest, NaturalezaMovimiento } from '../../models/tipo-movimiento';
-import { OrigenResponse, OrigenRequest, TipoOrigen } from '../../models/origen';
+import { NaturalezaMovimiento } from '../../models/tipo-movimiento';
+import { TipoOrigen } from '../../models/origen';
 import { PagoPeriodicoResponse } from '../../models/pago-periodico';
 
 @Component({
@@ -23,8 +21,6 @@ export class VerMovimientos implements OnInit {
 
   movimientos: MovimientoFinancieroResponse[] = [];
   negocios: NegocioResponse[] = [];
-  tiposMovimiento: TipoMovimientoResponse[] = [];
-  origenes: OrigenResponse[] = [];
   pagosPeriodicos: PagoPeriodicoResponse[] = [];
 
   movimientoEditando: MovimientoFinancieroRequest | null = null;
@@ -34,49 +30,29 @@ export class VerMovimientos implements OnInit {
   busqueda: string = '';
   mostrarEditar: boolean = false;
 
-  // Campos para crear un Tipo y Origen nuevos al editar
+  // Tipo y Origen del movimiento que se está editando (se crean embebidos al guardar)
   tipoNombreEditar: string = '';
   naturalezaEditar: string = '';
-  origenDescripcionEditar: string = '';
+  origenNombreEditar: string = '';
   origenTipoEditar: TipoOrigen | '' = '';
 
   idNegocioSeleccionado: string = '';
   error: string = '';
   exito: string = '';
-  idUsuario: string = '';
 
   constructor(
     private movimientoService: MovimientoService,
     private negocioService: NegocioService,
-    private tipoMovimientoService: TipoMovimientoService,
-    private origenService: OrigenService,
     private pagoPeriodicoService: PagoPeriodicoService,
     private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
-    const data = localStorage.getItem('usuario');
-    if (data) {
-      const usuario = JSON.parse(data);
-      this.idUsuario = usuario.idUsuario;
-      this.cargarNegocioYMovimientos();
-    }
-    this.cargarCatalogos();
-  }
-
-  cargarCatalogos() {
-    this.tipoMovimientoService.listarTodo().subscribe({
-      next: (data) => { this.tiposMovimiento = data; this.cd.detectChanges(); },
-      error: () => this.error = 'Error al cargar los tipos de movimiento'
-    });
-    this.origenService.listar().subscribe({
-      next: (data) => { this.origenes = data; this.cd.detectChanges(); },
-      error: () => this.error = 'Error al cargar los orígenes'
-    });
+    this.cargarNegocioYMovimientos();
   }
 
   cargarNegocioYMovimientos() {
-    this.negocioService.listarPorUsuario(this.idUsuario).subscribe({
+    this.negocioService.misNegocios().subscribe({
       next: (data) => {
         if (data.length > 0) {
           this.negocios = data;
@@ -94,7 +70,7 @@ export class VerMovimientos implements OnInit {
     this.movimientoService.listarPorNegocio(this.idNegocioSeleccionado).subscribe({
       next: (data) => {
         this.movimientos = [...data];
-        this.movimientosFiltrados = [...data];
+        this.buscar();
         this.cd.detectChanges();
       },
       error: () => this.error = 'Error al cargar movimientos'
@@ -112,23 +88,25 @@ export class VerMovimientos implements OnInit {
     });
   }
 
-  nombreTipo(id: string): string {
-    const tipo = this.tiposMovimiento.find(t => t.IdTipo === id);
-    return tipo ? `${tipo.nombre} (${tipo.naturaleza})` : '—';
-  }
-
-  nombreOrigen(id: string): string {
-    const origen = this.origenes.find(o => o.id === id);
-    return origen ? origen.descripcion : '—';
-  }
-
   editarMovimiento(movimiento: MovimientoFinancieroResponse) {
-    this.movimientoEditando = { ...movimiento };
+    this.movimientoEditando = {
+      monto: movimiento.monto,
+      fecha: movimiento.fecha,
+      descricion: movimiento.descricion,
+      negocioId: movimiento.negocioId,
+      tipoMovimiento: movimiento.tipoMovimiento,
+      origen: movimiento.origen
+    };
     this.idMovimientoEditando = movimiento.idMovimiento;
-    this.tipoNombreEditar = '';
-    this.naturalezaEditar = '';
-    this.origenDescripcionEditar = '';
-    this.origenTipoEditar = '';
+
+    // Se precargan los valores actuales del movimiento
+    this.tipoNombreEditar = movimiento.tipoMovimiento.nombre;
+    this.naturalezaEditar = movimiento.tipoMovimiento.naturaleza;
+    this.origenNombreEditar = movimiento.origen.nombre;
+    this.origenTipoEditar = movimiento.origen.tipoOrigen;
+
+    this.error = '';
+    this.exito = '';
     this.mostrarEditar = true;
   }
 
@@ -139,51 +117,34 @@ export class VerMovimientos implements OnInit {
       this.error = 'Completa el tipo de movimiento y la naturaleza';
       return;
     }
-    if (!this.origenDescripcionEditar || !this.origenTipoEditar) {
-      this.error = 'Completa la descripción y el tipo del origen';
+    if (!this.origenNombreEditar || !this.origenTipoEditar) {
+      this.error = 'Completa el nombre y el tipo del origen';
       return;
     }
 
     this.error = '';
 
-    const tipo: TipoMovimientoRequest = {
-      nombre: this.tipoNombreEditar,
-      naturaleza: this.naturalezaEditar as NaturalezaMovimiento
+    // Un solo PUT: tipo y origen van embebidos (el backend solo necesita la fecha, sin hora)
+    const cambios: MovimientoFinancieroRequest = {
+      ...this.movimientoEditando,
+      fecha: this.movimientoEditando.fecha.split('T')[0],
+      tipoMovimiento: {
+        nombre: this.tipoNombreEditar,
+        naturaleza: this.naturalezaEditar as NaturalezaMovimiento
+      },
+      origen: {
+        nombre: this.origenNombreEditar,
+        tipoOrigen: this.origenTipoEditar
+      }
     };
 
-    this.tipoMovimientoService.crear(tipo).subscribe({
-      next: (tipoGuardado) => {
-        this.tiposMovimiento.push(tipoGuardado);
-
-        const origen: OrigenRequest = {
-          descripcion: this.origenDescripcionEditar,
-          tipoOrigen: this.origenTipoEditar as TipoOrigen
-        };
-
-        this.origenService.crear(origen).subscribe({
-          next: (origenGuardado) => {
-            this.origenes.push(origenGuardado);
-
-            this.movimientoEditando!.tipoId = tipoGuardado.IdTipo;
-            this.movimientoEditando!.origenId = origenGuardado.id;
-
-            this.movimientoService.editarMovimiento(
-              this.idMovimientoEditando,
-              this.movimientoEditando!
-            ).subscribe({
-              next: () => {
-                this.exito = 'Movimiento actualizado exitosamente';
-                this.mostrarEditar = false;
-                this.movimientoEditando = null;
-                this.cargarMovimientos();
-              },
-              error: () => this.error = 'Error al editar el movimiento'
-            });
-          },
-          error: () => this.error = 'Error al guardar el origen'
-        });
+    this.movimientoService.editarMovimiento(this.idMovimientoEditando, cambios).subscribe({
+      next: () => {
+        this.exito = 'Movimiento actualizado exitosamente';
+        this.cancelarEdicion();
+        this.cargarMovimientos();
       },
-      error: () => this.error = 'Error al guardar el tipo'
+      error: () => this.error = 'Error al editar el movimiento'
     });
   }
 
@@ -193,18 +154,20 @@ export class VerMovimientos implements OnInit {
     this.idMovimientoEditando = '';
     this.tipoNombreEditar = '';
     this.naturalezaEditar = '';
-    this.origenDescripcionEditar = '';
+    this.origenNombreEditar = '';
     this.origenTipoEditar = '';
   }
 
   buscar() {
-    if (!this.busqueda.trim()) {
+    const texto = this.busqueda.trim().toLowerCase();
+    if (!texto) {
       this.movimientosFiltrados = [...this.movimientos];
       return;
     }
-    const texto = this.busqueda.toLowerCase();
     this.movimientosFiltrados = this.movimientos.filter(m =>
       m.descricion?.toLowerCase().includes(texto) ||
+      m.tipoMovimiento?.nombre?.toLowerCase().includes(texto) ||
+      m.origen?.nombre?.toLowerCase().includes(texto) ||
       m.monto?.toString().includes(texto)
     );
   }

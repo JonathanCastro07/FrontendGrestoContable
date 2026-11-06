@@ -2,24 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Observable, of, switchMap, map } from 'rxjs';
 import { MovimientoService } from '../../services/MovimientoService';
 import { NegocioService } from '../../services/NegocioService';
-import { TipoMovimientoService } from '../../services/Tipo-movimientoService';
-import { OrigenService } from '../../services/OrigenService';
-import { PeriodoService } from '../../services/PeriodoService';
 import {
   MovimientoFinancieroRequest,
   MovimientoFinancieroResponse,
 } from '../../models/movimiento';
 import { NegocioResponse } from '../../models/negocio';
-import { OrigenRequest, TipoOrigen } from '../../models/origen';
-import { NaturalezaMovimiento, TipoMovimientoRequest } from '../../models/tipo-movimiento';
-
-const MESES = [
-  'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
-  'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
-];
+import { TipoOrigen } from '../../models/origen';
+import { NaturalezaMovimiento } from '../../models/tipo-movimiento';
 
 @Component({
   selector: 'app-movimientos',
@@ -32,49 +23,37 @@ export class Movimientos implements OnInit {
   movimientos: MovimientoFinancieroResponse[] = [];
   negocios: NegocioResponse[] = [];
 
-  nuevoMovimiento: MovimientoFinancieroRequest = {
+  // monto, fecha y descripción del movimiento
+  nuevoMovimiento = {
     monto: 0,
     fecha: '',
     descricion: '',
-    negocioId: '',
-    tipoId: '',
-    origenId: '',
-    periodoId: '',
   };
 
-  // campos para crear el Tipo de Movimiento nuevo
+  // campos del Tipo de Movimiento (se crea embebido en el movimiento)
   tipoNombre: string = '';
   naturaleza: string = '';
 
-  // campos para crear el Origen nuevo
-  origenDescripcion: string = '';
+  // campos del Origen (se crea embebido en el movimiento)
+  origenNombre: string = '';
   origenTipo: TipoOrigen | '' = '';
 
   idNegocioSeleccionado: string = '';
   error: string = '';
   exito: string = '';
   mostrarFormulario: boolean = false;
-  idUsuario: string = '';
 
   constructor(
     private movimientoService: MovimientoService,
-    private negocioService: NegocioService,
-    private tipoMovimientoService: TipoMovimientoService,
-    private origenService: OrigenService,
-    private periodoService: PeriodoService
+    private negocioService: NegocioService
   ) {}
 
   ngOnInit() {
-    const data = localStorage.getItem('usuario');
-    if (data) {
-      const usuario = JSON.parse(data);
-      this.idUsuario = usuario.idUsuario;
-      this.cargarNegocioYMovimientos();
-    }
+    this.cargarNegocioYMovimientos();
   }
 
   cargarNegocioYMovimientos() {
-    this.negocioService.listarPorUsuario(this.idUsuario).subscribe({
+    this.negocioService.misNegocios().subscribe({
       next: (data) => {
         this.negocios = data;
         if (data.length > 0) {
@@ -96,7 +75,7 @@ export class Movimientos implements OnInit {
 
   onTipoChange() {
     this.naturaleza = '';
-    this.origenDescripcion = '';
+    this.origenNombre = '';
     this.origenTipo = '';
   }
 
@@ -104,28 +83,18 @@ export class Movimientos implements OnInit {
     return fecha.split('T')[0];
   }
 
-  private obtenerOCrearPeriodoId(fecha: string): Observable<string> {
-    const f = new Date(fecha);
-    const anio = f.getFullYear();
-    const mes = MESES[f.getMonth()];
-
-    return this.periodoService.listarTodo().pipe(
-      switchMap((periodos) => {
-        const existe = periodos.find((p) => p.mes === mes && p.anio === anio);
-        if (existe) {
-          return of(existe.idPeriodo);
-        }
-        return this.periodoService.crear({ mes, anio }).pipe(
-          map((nuevo) => nuevo.idPeriodo)
-        );
-      })
-    );
-  }
-
   registrar() {
     this.error = '';
     this.exito = '';
 
+    if (!this.idNegocioSeleccionado) {
+      this.error = 'No hay un negocio seleccionado';
+      return;
+    }
+    if (!this.nuevoMovimiento.fecha) {
+      this.error = 'Selecciona la fecha del movimiento';
+      return;
+    }
     if (!this.tipoNombre) {
       this.error = 'Selecciona un tipo de movimiento';
       return;
@@ -134,8 +103,8 @@ export class Movimientos implements OnInit {
       this.error = 'Selecciona la naturaleza del movimiento';
       return;
     }
-    if (!this.origenDescripcion) {
-      this.error = 'Ingresa la descripción del origen';
+    if (!this.origenNombre) {
+      this.error = 'Ingresa el nombre del origen';
       return;
     }
     if (!this.origenTipo) {
@@ -143,63 +112,42 @@ export class Movimientos implements OnInit {
       return;
     }
 
-    this.nuevoMovimiento.fecha = this.soloFecha(this.nuevoMovimiento.fecha);
-
-    this.obtenerOCrearPeriodoId(this.nuevoMovimiento.fecha).subscribe({
-      next: (periodoId) => {
-        this.nuevoMovimiento.periodoId = periodoId;
-
-        const tipo: TipoMovimientoRequest = {
-          nombre: this.tipoNombre,
-          naturaleza: this.naturaleza as NaturalezaMovimiento
-        };
-
-        this.tipoMovimientoService.crear(tipo).subscribe({
-          next: (tipoGuardado) => {
-            const origen: OrigenRequest = {
-              descripcion: this.origenDescripcion,
-              tipoOrigen: this.origenTipo as TipoOrigen
-            };
-
-            this.origenService.crear(origen).subscribe({
-              next: (origenGuardado) => {
-                this.nuevoMovimiento.negocioId = this.idNegocioSeleccionado;
-                this.nuevoMovimiento.tipoId = tipoGuardado.IdTipo;
-                this.nuevoMovimiento.origenId = origenGuardado.id;
-
-                this.movimientoService.registrarMovimiento(this.nuevoMovimiento).subscribe({
-                  next: () => {
-                    this.exito = 'Movimiento registrado exitosamente';
-                    this.mostrarFormulario = false;
-                    this.resetFormulario();
-                    this.cargarMovimientos();
-                  },
-                  error: () => this.error = 'Error al registrar el movimiento'
-                });
-              },
-              error: () => this.error = 'Error al guardar el origen'
-            });
-          },
-          error: () => this.error = 'Error al guardar el tipo'
-        });
+    // Un solo POST: el tipo y el origen viajan embebidos y el backend calcula el periodo
+    const movimiento: MovimientoFinancieroRequest = {
+      monto: this.nuevoMovimiento.monto,
+      fecha: this.soloFecha(this.nuevoMovimiento.fecha),
+      descricion: this.nuevoMovimiento.descricion,
+      negocioId: this.idNegocioSeleccionado,
+      tipoMovimiento: {
+        nombre: this.tipoNombre,
+        naturaleza: this.naturaleza as NaturalezaMovimiento
       },
-      error: () => this.error = 'Error al obtener el periodo'
+      origen: {
+        nombre: this.origenNombre,
+        tipoOrigen: this.origenTipo
+      }
+    };
+
+    this.movimientoService.registrarMovimiento(movimiento).subscribe({
+      next: () => {
+        this.exito = 'Movimiento registrado exitosamente';
+        this.mostrarFormulario = false;
+        this.resetFormulario();
+        this.cargarMovimientos();
+      },
+      error: () => this.error = 'Error al registrar el movimiento'
     });
   }
 
   private resetFormulario() {
     this.tipoNombre = '';
     this.naturaleza = '';
-    this.origenDescripcion = '';
+    this.origenNombre = '';
     this.origenTipo = '';
     this.nuevoMovimiento = {
       monto: 0,
       fecha: '',
       descricion: '',
-      negocioId: '',
-      tipoId: '',
-      origenId: '',
-      periodoId: ''
     };
   }
 

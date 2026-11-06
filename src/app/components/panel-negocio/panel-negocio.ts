@@ -2,9 +2,10 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NegocioResponse, ResumenFinanciero } from '../../models/negocio';
-import { UsuarioResponse } from '../../models/usuario';
+import { UsuarioSesion } from '../../models/usuario';
 import { NegocioService } from '../../services/NegocioService';
 import { UsuarioService } from '../../services/usuarioService';
+import { AuthService } from '../../services/AuthService';
 
 @Component({
   selector: 'app-panel-negocio',
@@ -14,47 +15,37 @@ import { UsuarioService } from '../../services/usuarioService';
 })
 export class PanelNegocio implements OnInit {
   negocio: NegocioResponse | null = null;
-  usuario: UsuarioResponse | null = null;
+  usuario: UsuarioSesion | null = null;
   resumen: ResumenFinanciero | null = null;
 
   constructor(
     private router: Router,
     private negocioService: NegocioService,
     private usuarioService: UsuarioService,
+    private auth: AuthService,
     private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
-    const dataNegocio = localStorage.getItem('negocio');
-    const dataUsuario = localStorage.getItem('usuario');
-
-    if (dataNegocio) {
-      this.negocio = JSON.parse(dataNegocio);
-      this.cargarResumen();
-      this.cd.detectChanges();
-    }
-    if (dataUsuario) {
-      this.usuario = JSON.parse(dataUsuario);
-    }
+    this.negocio = this.auth.getNegocio();
+    this.usuario = this.auth.getUsuario();
 
     if (!this.negocio || !this.usuario) {
       this.router.navigate(['/login']);
+      return;
     }
+
+    this.cargarResumen();
+    this.cd.detectChanges();
   }
 
   cerrarSesion() {
-    this.usuarioService.logout().subscribe({
-      next: () => {
-        localStorage.removeItem('usuario');
-        localStorage.removeItem('negocio');
-        this.router.navigate(['/login']);
-      },
-      error: () => {
-        localStorage.removeItem('usuario');
-        localStorage.removeItem('negocio');
-        this.router.navigate(['/login']);
-      },
-    });
+    // Invalida el token en el backend (lista negra en Redis) y limpia la sesión local
+    const salir = () => {
+      this.auth.limpiarSesion();
+      this.router.navigate(['/login']);
+    };
+    this.usuarioService.logout().subscribe({ next: salir, error: salir });
   }
 
   cargarResumen() {
