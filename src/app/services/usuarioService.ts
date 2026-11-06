@@ -1,12 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, finalize, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { API_URL } from '../config/api';
 import {
   LoginRequest,
   LoginResponse,
   RegistroRequest,
-  UsuarioResponse,
+  RegistroResponse,
 } from '../models/usuario';
 
 @Injectable({
@@ -17,37 +17,27 @@ export class UsuarioService {
 
   constructor(private http: HttpClient) {}
 
-  registrar(registro: RegistroRequest): Observable<UsuarioResponse> {
-    return this.http.post<UsuarioResponse>(`${this.apiUrl}/registro`, registro);
+  registrar(registro: RegistroRequest): Observable<RegistroResponse> {
+    return this.http.post<RegistroResponse>(`${this.apiUrl}/registro`, registro);
   }
 
+  // El token se guarda desde el componente con AuthService.guardarSesion()
   login(correo: string, password: string): Observable<LoginResponse> {
     const body: LoginRequest = { correo, password };
-
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, body).pipe(
-      tap((res) => localStorage.setItem('token', res.token))
-    );
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, body);
   }
 
+  // El interceptor agrega el token; el backend lo mete en la lista negra (Redis)
   logout(): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/logout`, null).pipe(
-      finalize(() => localStorage.removeItem('token'))
-    );
+    return this.http.post<void>(`${this.apiUrl}/logout`, null);
   }
 
-  listar(): Observable<UsuarioResponse[]> {
-    return this.http.get<UsuarioResponse[]>(this.apiUrl);
+  // Requieren CuentaController en el backend
+  cambiarCorreo(nuevoCorreo: string): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/correo`, { nuevoCorreo });
   }
 
-  buscarPorId(id: string): Observable<UsuarioResponse> {
-    return this.http.get<UsuarioResponse>(`${this.apiUrl}/${id}`);
-  }
-
-  actualizar(id: string, registro: RegistroRequest): Observable<UsuarioResponse> {
-    return this.http.put<UsuarioResponse>(`${this.apiUrl}/${id}`, registro);
-  }
-
-  eliminar(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  cambiarPassword(passwordActual: string, nuevaPassword: string): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/password`, { passwordActual, nuevaPassword });
   }
 }

@@ -1,11 +1,15 @@
+import { OrigenDto } from './origen';
+import { PeriodoDto } from './periodo';
+import { TipoMovimientoDto } from './tipo-movimiento';
+
+// OJO: el backend escribe "descricion" (sin la p) en el request y en el response
 export interface MovimientoFinancieroRequest {
   monto: number;
   fecha: string;
   descricion: string;
   negocioId: string;
-  tipoId: string;
-  origenId: string;
-  periodoId: string;
+  tipoMovimiento: TipoMovimientoDto;
+  origen: OrigenDto;
 }
 
 export interface MovimientoFinancieroResponse {
@@ -14,9 +18,9 @@ export interface MovimientoFinancieroResponse {
   fecha: string;
   descricion: string;
   negocioId: string;
-  tipoId: string;
-  origenId: string;
-  periodoId: string;
+  tipoMovimiento: TipoMovimientoDto;
+  origen: OrigenDto;
+  periodo: PeriodoDto;
 }
 
 export interface MovimientoResumenResponse {

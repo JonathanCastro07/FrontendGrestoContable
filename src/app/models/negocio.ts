@@ -9,6 +9,7 @@ export interface NegocioResponse {
   nombre: string;
   tipoActividad: string;
   capitalInicial: number;
+  rolPropietario?: string;
 }
 
 export interface ResumenFinanciero {
