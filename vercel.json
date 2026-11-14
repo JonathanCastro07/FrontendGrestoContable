@@ -1,7 +1,7 @@
 {
   "outputDirectory": "dist/GestroContableFrontend/browser",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://characterization-availability-saturday-recall.trycloudflare.com/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://police-neural-supported-governing.trycloudflare.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
