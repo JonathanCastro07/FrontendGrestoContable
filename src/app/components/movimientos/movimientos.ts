@@ -25,9 +25,10 @@ export class Movimientos implements OnInit {
 
   // monto, fecha y descripción del movimiento
   nuevoMovimiento = {
-    monto: 0,
-    fecha: '',
-    descricion: '',
+  monto: 0,
+  fecha: this.hoy(),   // yyyy-MM-dd
+  hora: this.ahora(),  // HH:mm
+  descricion: '',
   };
 
   // campos del Tipo de Movimiento (se crea embebido en el movimiento)
@@ -74,13 +75,23 @@ export class Movimientos implements OnInit {
   }
 
   onTipoChange() {
-    this.naturaleza = '';
-    this.origenNombre = '';
-    this.origenTipo = '';
   }
 
-  private soloFecha(fecha: string): string {
-    return fecha.split('T')[0];
+  private hoy(): string {
+    const d = new Date();
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${mes}-${dia}`;
+  }
+
+  private ahora(): string {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+
+  // Une fecha "2026-11-07" y hora "13:17" -> "2026-11-07T13:17:00" (LocalDateTime del backend)
+  private fechaHora(fecha: string, hora: string): string {
+    return `${fecha}T${hora.length === 5 ? hora + ':00' : hora}`;
   }
 
   registrar() {
@@ -93,6 +104,10 @@ export class Movimientos implements OnInit {
     }
     if (!this.nuevoMovimiento.fecha) {
       this.error = 'Selecciona la fecha del movimiento';
+      return;
+    }
+    if (!this.nuevoMovimiento.hora) {
+      this.error = 'Selecciona la hora del movimiento';
       return;
     }
     if (!this.tipoNombre) {
@@ -115,7 +130,7 @@ export class Movimientos implements OnInit {
     // Un solo POST: el tipo y el origen viajan embebidos y el backend calcula el periodo
     const movimiento: MovimientoFinancieroRequest = {
       monto: this.nuevoMovimiento.monto,
-      fecha: this.soloFecha(this.nuevoMovimiento.fecha),
+      fecha: this.fechaHora(this.nuevoMovimiento.fecha, this.nuevoMovimiento.hora),
       descricion: this.nuevoMovimiento.descricion,
       negocioId: this.idNegocioSeleccionado,
       tipoMovimiento: {
@@ -146,7 +161,8 @@ export class Movimientos implements OnInit {
     this.origenTipo = '';
     this.nuevoMovimiento = {
       monto: 0,
-      fecha: '',
+      fecha: this.hoy(),
+      hora: this.ahora(),
       descricion: '',
     };
   }

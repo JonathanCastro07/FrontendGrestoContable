@@ -1,0 +1,7 @@
+{
+  "outputDirectory": "dist/GestroContableFrontend/browser",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://jeans-rational-televisions-transformation.trycloudflare.com/api/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

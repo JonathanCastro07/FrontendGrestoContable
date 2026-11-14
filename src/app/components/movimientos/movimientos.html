@@ -4,9 +4,6 @@
   <nav class="navbar">
     <h1>GestroContable</h1>
     <div class="nav-links">
-      <a routerLink="/panel">← Panel</a>
-      <a routerLink="/ver-movimientos">📊 Ver Movimientos</a>
-      <a routerLink="/pagos-periodicos">🔁 Pagos Periódicos</a>
     </div>
   </nav>
 
@@ -14,10 +11,7 @@
   <div class="content">
 
     <div class="header">
-      <h2>Movimientos — {{ negocios[0]?.nombre }}</h2>
-      <button class="btn-nuevo" (click)="mostrarFormulario = !mostrarFormulario">
-        + Nuevo Movimiento
-      </button>
+      <h2 style="margin: 0 auto;">Movimientos — {{ negocios[0]?.nombre }}</h2>
     </div>
 
     <!-- Mensajes -->
@@ -25,7 +19,7 @@
     <div class="exito-message" *ngIf="exito">{{ exito }}</div>
 
     <!-- Formulario -->
-    <div class="formulario" *ngIf="mostrarFormulario">
+    <div class="formulario" style="margin: 0 auto 32px; max-width: 500px;">
       <h3>Registrar Movimiento</h3>
 
       <div class="form-group">
@@ -35,7 +29,12 @@
 
       <div class="form-group">
         <label>Fecha y hora</label>
-        <input type="datetime-local" [(ngModel)]="nuevoMovimiento.fecha"/>
+        <input type="date" [(ngModel)]="nuevoMovimiento.fecha"/>
+      </div>
+
+      <div class="form-group">
+        <label>Hora</label>
+        <input type="time" [(ngModel)]="nuevoMovimiento.hora"/>
       </div>
 
       <div class="form-group">
@@ -55,7 +54,7 @@
       </div>
 
       <!-- Naturaleza -->
-      <div class="form-group" *ngIf="tipoNombre">
+      <div class="form-group">
         <label>Naturaleza</label>
         <select [(ngModel)]="naturaleza">
           <option value="">-- Selecciona --</option>
@@ -65,12 +64,12 @@
       </div>
 
       <!-- Origen -->
-      <div class="form-group" *ngIf="tipoNombre">
+      <div class="form-group">
         <label>Nombre del Origen</label>
         <input type="text" [(ngModel)]="origenNombre" placeholder="Ej: Proveedor Juan"/>
       </div>
 
-      <div class="form-group" *ngIf="origenNombre">
+      <div class="form-group">
         <label>Tipo de Origen</label>
         <select [(ngModel)]="origenTipo">
           <option value="">-- Selecciona --</option>
@@ -85,7 +84,6 @@
 
       <div class="form-buttons">
         <button class="btn-guardar" (click)="registrar()">Guardar</button>
-        <button class="btn-cancelar" (click)="mostrarFormulario = false">Cancelar</button>
       </div>
     </div>
 

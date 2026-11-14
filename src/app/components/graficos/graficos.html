@@ -1,0 +1,136 @@
+<div class="graficos-container">
+  <nav class="navbar">
+    <h1>GestroContable</h1>
+    <div class="nav-links">
+    </div>
+  </nav>
+
+  <div class="content">
+    <div class="header">
+      <h2>Gráficos contables</h2>
+      <div class="filtros">
+        <select *ngIf="negocios.length > 1" [(ngModel)]="idNegocio" (ngModelChange)="cambiarNegocio()" aria-label="Negocio">
+          <option *ngFor="let n of negocios" [value]="n.idNegocio">{{ n.nombre }}</option>
+        </select>
+        <select [(ngModel)]="anio" (ngModelChange)="cargar()" aria-label="Año" *ngIf="anio">
+          <option *ngFor="let a of anios" [ngValue]="a">{{ a }}</option>
+        </select>
+        <button type="button" class="btn-tabla" (click)="verTabla = !verTabla">
+          {{ verTabla ? 'Ver gráficos' : 'Ver tabla' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+    <p class="aviso" *ngIf="cargando">Cargando…</p>
+
+    <ng-container *ngIf="datos && !cargando">
+
+      <div class="kpis">
+        <div class="kpi"><span>Ingresos</span><strong>{{ moneda(datos.totales.ingresos) }}</strong></div>
+        <div class="kpi"><span>Egresos</span><strong>{{ moneda(datos.totales.egresos) }}</strong></div>
+        <div class="kpi"><span>Gastos</span><strong>{{ moneda(datos.totales.gastos) }}</strong></div>
+        <div class="kpi"><span>Utilidad</span><strong>{{ moneda(datos.totales.utilidad) }}</strong></div>
+      </div>
+
+      <p class="aviso" *ngIf="sinDatos">No hay movimientos registrados en {{ anio }}.</p>
+
+      <ng-container *ngIf="!sinDatos && !verTabla">
+
+        <section class="card">
+          <h3>Ingresos, egresos y gastos por mes</h3>
+          <ul class="leyenda">
+            <li><i class="sw ingresos"></i>Ingresos</li>
+            <li><i class="sw egresos"></i>Egresos</li>
+            <li><i class="sw gastos"></i>Gastos</li>
+          </ul>
+          <div class="chart">
+            <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" role="img"
+                 [attr.aria-label]="'Ingresos, egresos y gastos por mes en ' + anio">
+              <g *ngFor="let t of ticks">
+                <line class="grid" [attr.x1]="56" [attr.x2]="W - 10" [attr.y1]="t.y" [attr.y2]="t.y" />
+                <text class="eje" [attr.x]="50" [attr.y]="t.y + 4" text-anchor="end">{{ t.texto }}</text>
+              </g>
+              <line class="base" [attr.x1]="56" [attr.x2]="W - 10" [attr.y1]="y0" [attr.y2]="y0" />
+              <g *ngFor="let g of grupos; let i = index">
+                <rect *ngIf="hover === i" class="resalte" [attr.x]="g.xBanda" [attr.y]="12" [attr.width]="g.wBanda" [attr.height]="y0 - 12" />
+                <path *ngFor="let b of g.barras" [attr.class]="'barra ' + b.clase" [attr.d]="ruta(b, y0)" />
+                <text class="eje" [attr.x]="g.xEtiqueta" [attr.y]="H - 8" text-anchor="middle">{{ g.mes.etiqueta }}</text>
+                <rect class="hit" [attr.x]="g.xBanda" [attr.y]="0" [attr.width]="g.wBanda" [attr.height]="H"
+                      (mouseenter)="hover = i" (mouseleave)="hover = null" (focus)="hover = i" (blur)="hover = null" tabindex="0"
+                      [attr.aria-label]="g.mes.etiqueta + ': ingresos ' + moneda(g.mes.ingresos) + ', egresos ' + moneda(g.mes.egresos) + ', gastos ' + moneda(g.mes.gastos)" />
+              </g>
+            </svg>
+            <div class="tooltip" *ngIf="hover !== null" [style.left.%]="tooltipLeft(grupos[hover])"
+                 [class.der]="hover > 6">
+              <strong>{{ grupos[hover].mes.etiqueta }} {{ anio }}</strong>
+              <div><i class="sw ingresos"></i>Ingresos <b>{{ moneda(grupos[hover].mes.ingresos) }}</b></div>
+              <div><i class="sw egresos"></i>Egresos <b>{{ moneda(grupos[hover].mes.egresos) }}</b></div>
+              <div><i class="sw gastos"></i>Gastos <b>{{ moneda(grupos[hover].mes.gastos) }}</b></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Utilidad por mes</h3>
+          <p class="sub">Ingresos − egresos − gastos</p>
+          <div class="chart">
+            <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" role="img"
+                 [attr.aria-label]="'Utilidad por mes en ' + anio">
+              <g *ngFor="let t of ticksUtil">
+                <line class="grid" [attr.x1]="56" [attr.x2]="W - 10" [attr.y1]="t.y" [attr.y2]="t.y" />
+                <text class="eje" [attr.x]="50" [attr.y]="t.y + 4" text-anchor="end">{{ t.texto }}</text>
+              </g>
+              <line class="base" [attr.x1]="56" [attr.x2]="W - 10" [attr.y1]="y0Util" [attr.y2]="y0Util" />
+              <g *ngFor="let g of gruposUtil; let i = index">
+                <rect *ngIf="hoverUtil === i" class="resalte" [attr.x]="g.xBanda" [attr.y]="12" [attr.width]="g.wBanda" [attr.height]="H - 40" />
+                <path *ngFor="let b of g.barras" [attr.class]="'barra ' + b.clase" [attr.d]="ruta(b, y0Util)" />
+                <text class="eje" [attr.x]="g.xEtiqueta" [attr.y]="H - 8" text-anchor="middle">{{ g.mes.etiqueta }}</text>
+                <rect class="hit" [attr.x]="g.xBanda" [attr.y]="0" [attr.width]="g.wBanda" [attr.height]="H"
+                      (mouseenter)="hoverUtil = i" (mouseleave)="hoverUtil = null" (focus)="hoverUtil = i" (blur)="hoverUtil = null" tabindex="0"
+                      [attr.aria-label]="g.mes.etiqueta + ': utilidad ' + moneda(g.mes.utilidad)" />
+              </g>
+            </svg>
+            <div class="tooltip" *ngIf="hoverUtil !== null" [style.left.%]="tooltipLeft(gruposUtil[hoverUtil])"
+                 [class.der]="hoverUtil > 6">
+              <strong>{{ gruposUtil[hoverUtil].mes.etiqueta }} {{ anio }}</strong>
+              <div>Utilidad <b>{{ moneda(gruposUtil[hoverUtil].mes.utilidad) }}</b></div>
+            </div>
+          </div>
+          <p class="nota">Las barras por debajo de la línea cero (rojo) son meses con pérdida.</p>
+        </section>
+
+      </ng-container>
+
+      <section class="card" *ngIf="verTabla">
+        <h3>Detalle mensual {{ anio }}</h3>
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr><th>Mes</th><th>Ingresos</th><th>Egresos</th><th>Gastos</th><th>Utilidad</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let m of datos.meses">
+                <td>{{ m.etiqueta }}</td>
+                <td>{{ moneda(m.ingresos) }}</td>
+                <td>{{ moneda(m.egresos) }}</td>
+                <td>{{ moneda(m.gastos) }}</td>
+                <td [class.neg]="m.utilidad < 0">{{ moneda(m.utilidad) }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th>Total</th>
+                <th>{{ moneda(datos.totales.ingresos) }}</th>
+                <th>{{ moneda(datos.totales.egresos) }}</th>
+                <th>{{ moneda(datos.totales.gastos) }}</th>
+                <th>{{ moneda(datos.totales.utilidad) }}</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+    </ng-container>
+  </div>
+</div>

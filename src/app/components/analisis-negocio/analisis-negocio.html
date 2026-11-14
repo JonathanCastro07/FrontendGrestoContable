@@ -1,0 +1,129 @@
+<section class="analisis">
+
+  <div class="a-head">
+    <h3>
+      <svg viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+      Análisis del negocio
+    </h3>
+
+    <div class="pills" role="group" aria-label="Período">
+      @for (p of periodos; track p.id) {
+        <button type="button" [class.activo]="periodo === p.id" (click)="cambiar(p.id)">{{ p.texto }}</button>
+      }
+    </div>
+  </div>
+
+  @if (cargando) {
+    <p class="vacio">Cargando…</p>
+  } @else if (error) {
+    <div class="error-message">{{ error }}</div>
+  } @else if (todos.length === 0) {
+    <div class="vacio grande">
+      <svg viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m7 15 4-4 3 3 5-6"/></svg>
+      <strong>Aún no hay información suficiente</strong>
+      <span>Cuando registres tus primeros movimientos, aquí verás la distribución de tus gastos y la evolución de tus ingresos y egresos.</span>
+    </div>
+  } @else {
+    <div class="graficos">
+
+      <!-- Distribución de gastos -->
+      <div class="panel-g dona-panel">
+        <h4>
+          <svg viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+          Distribución de gastos
+        </h4>
+
+        @if (segmentos.length === 0) {
+          <p class="vacio">No hay gastos registrados en este período.</p>
+        } @else {
+          <div class="dona-cuerpo">
+            <div class="dona">
+              <svg viewBox="0 0 200 200" role="img" aria-label="Distribución de gastos por categoría">
+                <circle cx="100" cy="100" [attr.r]="radio" fill="none" stroke="#f1f1ee" stroke-width="26"/>
+                @for (s of segmentos; track s.nombre) {
+                  <circle cx="100" cy="100" [attr.r]="radio" fill="none" stroke-width="26"
+                          transform="rotate(-90 100 100)"
+                          [attr.stroke]="s.color"
+                          [attr.stroke-dasharray]="s.dash"
+                          [attr.stroke-dashoffset]="s.offset"/>
+                }
+              </svg>
+              <div class="dona-centro">
+                <strong>${{ compacto(totalGastos) }}</strong>
+                <span>Total gastos</span>
+              </div>
+            </div>
+
+            <ul class="cats">
+              @for (s of segmentos; track s.nombre) {
+                <li>
+                  <span class="punto" [style.background]="s.color"></span>
+                  <div>
+                    <span class="cat-nombre">{{ s.nombre }}</span>
+                    <span class="cat-valor">{{ s.pct | number:'1.0-0' }}% · {{ moneda(s.valor) }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+
+      <!-- Evolución financiera -->
+      <div class="panel-g lineas-panel">
+        <div class="lineas-head">
+          <h4>
+            <svg viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>
+            Evolución financiera
+          </h4>
+          <ul class="leyenda">
+            <li><span class="punto ing"></span>Ingresos</li>
+            <li><span class="punto egr"></span>Egresos</li>
+          </ul>
+        </div>
+
+        @if (!hayLineas) {
+          <p class="vacio">No hay ingresos ni egresos en este período.</p>
+        } @else {
+          <div class="lineas">
+            <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" role="img" aria-label="Evolución de ingresos y egresos">
+              @for (t of ticksY; track t.y) {
+                <line class="grid" [attr.x1]="L" [attr.x2]="W - R" [attr.y1]="t.y" [attr.y2]="t.y"/>
+                <text class="eje" [attr.x]="L - 10" [attr.y]="t.y + 4" text-anchor="end">{{ t.texto }}</text>
+              }
+
+              @if (hover !== null) {
+                <line class="guia" [attr.x1]="puntos[hover].x" [attr.x2]="puntos[hover].x" [attr.y1]="T" [attr.y2]="H - B"/>
+              }
+
+              <path class="area" [attr.d]="areaIngresos"/>
+              <path class="linea ing" [attr.d]="rutaIngresos"/>
+              <path class="linea egr" [attr.d]="rutaEgresos"/>
+
+              @for (p of puntos; track $index) {
+                <circle class="dot ing" r="3.5" [attr.cx]="p.x" [attr.cy]="p.yIngresos"/>
+                <circle class="dot egr" r="3.5" [attr.cx]="p.x" [attr.cy]="p.yEgresos"/>
+                <text class="eje" [attr.x]="p.x" [attr.y]="H - 10" text-anchor="middle">{{ p.etiqueta }}</text>
+              }
+
+              @for (p of puntos; track $index) {
+                <rect class="hit"
+                      [attr.x]="p.x - bandaAncho / 2" [attr.y]="T" [attr.width]="bandaAncho" [attr.height]="H - T - B"
+                      (mouseenter)="hover = $index" (mouseleave)="hover = null"/>
+              }
+            </svg>
+
+            @if (hover !== null) {
+              <div class="tooltip" [class.der]="hover > puntos.length / 2" [style.left.%]="puntos[hover].x / W * 100">
+                <strong>{{ puntos[hover].etiqueta }}</strong>
+                <div><span class="punto ing"></span>Ingresos <b>{{ moneda(puntos[hover].ingresos) }}</b></div>
+                <div><span class="punto egr"></span>Egresos <b>{{ moneda(puntos[hover].egresos) }}</b></div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+</section>

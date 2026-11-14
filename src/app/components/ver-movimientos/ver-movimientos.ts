@@ -28,10 +28,14 @@ export class VerMovimientos implements OnInit {
   movimientosFiltrados: MovimientoFinancieroResponse[] = [];
 
   busqueda: string = '';
+  readonly porPagina = 20;
+  pagina = 1;
   mostrarEditar: boolean = false;
 
   // Tipo y Origen del movimiento que se está editando (se crean embebidos al guardar)
   tipoNombreEditar: string = '';
+  fechaEditar: string = '';
+  horaEditar: string = '';
   naturalezaEditar: string = '';
   origenNombreEditar: string = '';
   origenTipoEditar: TipoOrigen | '' = '';
@@ -98,6 +102,8 @@ export class VerMovimientos implements OnInit {
       origen: movimiento.origen
     };
     this.idMovimientoEditando = movimiento.idMovimiento;
+    this.fechaEditar = movimiento.fecha.substring(0, 10);   // yyyy-MM-dd
+    this.horaEditar = movimiento.fecha.substring(11, 16);   // HH:mm
 
     // Se precargan los valores actuales del movimiento
     this.tipoNombreEditar = movimiento.tipoMovimiento.nombre;
@@ -124,10 +130,15 @@ export class VerMovimientos implements OnInit {
 
     this.error = '';
 
+    if (!this.fechaEditar || !this.horaEditar) {
+      this.error = 'Completa la fecha y la hora';
+      return;
+    }
+
     // Un solo PUT: tipo y origen van embebidos (el backend solo necesita la fecha, sin hora)
     const cambios: MovimientoFinancieroRequest = {
       ...this.movimientoEditando,
-      fecha: this.movimientoEditando.fecha.split('T')[0],
+      fecha: `${this.fechaEditar}T${this.horaEditar}:00`,
       tipoMovimiento: {
         nombre: this.tipoNombreEditar,
         naturaleza: this.naturalezaEditar as NaturalezaMovimiento
@@ -158,18 +169,51 @@ export class VerMovimientos implements OnInit {
     this.origenTipoEditar = '';
   }
 
+  // Se llama al escribir en el buscador: vuelve a la primera página
+  onBuscar() {
+    this.pagina = 1;
+    this.buscar();
+  }
+
   buscar() {
     const texto = this.busqueda.trim().toLowerCase();
-    if (!texto) {
-      this.movimientosFiltrados = [...this.movimientos];
-      return;
-    }
-    this.movimientosFiltrados = this.movimientos.filter(m =>
-      m.descricion?.toLowerCase().includes(texto) ||
-      m.tipoMovimiento?.nombre?.toLowerCase().includes(texto) ||
-      m.origen?.nombre?.toLowerCase().includes(texto) ||
-      m.monto?.toString().includes(texto)
+    const base = !texto
+      ? [...this.movimientos]
+      : this.movimientos.filter(m =>
+          m.descricion?.toLowerCase().includes(texto) ||
+          m.tipoMovimiento?.nombre?.toLowerCase().includes(texto) ||
+          m.origen?.nombre?.toLowerCase().includes(texto) ||
+          m.monto?.toString().includes(texto)
+        );
+
+    // Más recientes primero
+    this.movimientosFiltrados = base.sort(
+      (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
     );
+
+    // Si tras eliminar/filtrar la página actual ya no existe, se retrocede
+    if (this.pagina > this.totalPaginas) this.pagina = this.totalPaginas;
+  }
+
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.movimientosFiltrados.length / this.porPagina));
+  }
+
+  get movimientosPagina(): MovimientoFinancieroResponse[] {
+    const inicio = (this.pagina - 1) * this.porPagina;
+    return this.movimientosFiltrados.slice(inicio, inicio + this.porPagina);
+  }
+
+  get desde(): number {
+    return this.movimientosFiltrados.length === 0 ? 0 : (this.pagina - 1) * this.porPagina + 1;
+  }
+
+  get hasta(): number {
+    return Math.min(this.pagina * this.porPagina, this.movimientosFiltrados.length);
+  }
+
+  irAPagina(p: number) {
+    this.pagina = Math.min(Math.max(p, 1), this.totalPaginas);
   }
 
   eliminar(id: string | undefined) {

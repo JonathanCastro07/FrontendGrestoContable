@@ -1,0 +1,57 @@
+.chart { position: relative; }
+svg { width: 100%; height: auto; display: block; }
+
+.sub, .nota { font-size: 12px; color: var(--ink-2); }
+.sub { margin: -6px 0 8px; }
+.nota { margin-top: 12px; }
+
+.leyenda {
+  display: flex;
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--ink-2);
+
+  li { display: flex; align-items: center; }
+}
+
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; }
+.sw.ingresos { background: var(--c-ingresos); }
+.sw.egresos { background: var(--c-egresos); }
+.sw.gastos { background: var(--c-gastos); }
+
+.grid { stroke: var(--line); stroke-width: 1; }
+.base { stroke: var(--line-strong); stroke-width: 1; }
+.eje { fill: #a3a39d; font-size: 11px; }
+.resalte { fill: rgba(36, 36, 36, 0.04); }
+.hit { fill: transparent; outline: none; }
+
+.barra.ingresos { fill: var(--c-ingresos); }
+.barra.egresos { fill: var(--c-egresos); }
+.barra.gastos { fill: var(--c-gastos); }
+.barra.util-pos { fill: var(--accent); }
+.barra.util-neg { fill: var(--c-util-neg); }
+
+.tooltip {
+  position: absolute;
+  top: 8px;
+  transform: translateX(12px);
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+
+  strong { display: block; margin-bottom: 6px; }
+  div { display: flex; align-items: center; gap: 14px; }
+  b { font-weight: 600; margin-left: auto; }
+  &.der { transform: translateX(calc(-100% - 12px)); }
+}
+
+table tfoot th { text-align: right; padding: 12px; border-top: 1px solid var(--line); font-weight: 600; }
+table th, table td { text-align: right; }
+table th:first-child, table td:first-child { text-align: left; }

@@ -6,15 +6,17 @@ import { UsuarioService } from '../../services/usuarioService';
 import { NegocioService } from '../../services/NegocioService';
 import { AuthService } from '../../services/AuthService';
 import { RegistroRequest } from '../../models/usuario';
+import { AuthPanel } from '../auth-panel/auth-panel';
 
 @Component({
   selector: 'app-registro',
-  imports: [FormsModule, RouterLink, CommonModule],
+  imports: [FormsModule, RouterLink, CommonModule, AuthPanel],
   templateUrl: './registro.html',
   styleUrl: './registro.scss',
 })
 export class Registro {
-  // Un solo formulario: datos del usuario + su primer negocio
+  // Un solo objeto con datos del usuario + su primer negocio.
+  // Los dos pasos del formulario solo lo muestran por partes: no se envía nada hasta "Crear cuenta".
   registro: RegistroRequest = {
     nombre: '',
     correo: '',
@@ -28,6 +30,11 @@ export class Registro {
     rolPropietario: '',
   };
 
+  paso: 1 | 2 = 1;
+  errores: Record<string, string> = {};
+  verPassword = false;
+  cargando = false;
+
   error: string = '';
   exito: string = '';
 
@@ -38,26 +45,79 @@ export class Registro {
     private router: Router
   ) {}
 
+  // ---------- Navegación entre pasos ----------
+
+  siguiente() {
+    this.error = '';
+    if (!this.validarPaso1()) return;
+    this.paso = 2;
+  }
+
+  volver() {
+    this.error = '';
+    this.errores = {};
+    this.paso = 1;
+  }
+
+  quitarError(campo: string) {
+    if (this.errores[campo]) {
+      const { [campo]: _quitado, ...resto } = this.errores;
+      this.errores = resto;
+    }
+  }
+
+  // ---------- Validaciones ----------
+
+  private validarPaso1(): boolean {
+    const r = this.registro;
+    const e: Record<string, string> = {};
+
+    if (!r.nombre.trim()) e['nombre'] = 'Ingresa tu nombre completo';
+    if (!r.correo.trim()) e['correo'] = 'Ingresa tu correo electrónico';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.correo.trim())) e['correo'] = 'El correo no es válido';
+    if (!r.password) e['password'] = 'Ingresa una contraseña';
+    if (!r.preguntaSeguridad.trim()) e['preguntaSeguridad'] = 'Ingresa tu pregunta de seguridad';
+    if (!r.respuestaSeguridad.trim()) e['respuestaSeguridad'] = 'Ingresa tu respuesta de seguridad';
+
+    this.errores = e;
+    return Object.keys(e).length === 0;
+  }
+
+  private validarPaso2(): boolean {
+    const r = this.registro;
+    const e: Record<string, string> = {};
+
+    if (!r.nombreNegocio.trim()) e['nombreNegocio'] = 'Ingresa el nombre de tu negocio';
+    if (!r.tipoActividad) e['tipoActividad'] = 'Selecciona el tipo de actividad';
+    if (!r.rolPropietario) e['rolPropietario'] = 'Selecciona tu rol';
+    if (r.capitalInicial === null || r.capitalInicial === undefined || r.capitalInicial < 0) {
+      e['capitalInicial'] = 'El capital inicial no puede ser negativo';
+    }
+
+    this.errores = e;
+    return Object.keys(e).length === 0;
+  }
+
+  // ---------- Envío (solo desde el paso 2) ----------
+
   registrar() {
     this.error = '';
     this.exito = '';
 
-    const r = this.registro;
-    if (!r.nombre || !r.correo || !r.password || !r.preguntaSeguridad || !r.respuestaSeguridad) {
-      this.error = 'Completa los datos de tu cuenta';
+    if (!this.validarPaso1()) {
+      this.paso = 1;
       return;
     }
-    if (!r.nombreNegocio || !r.tipoActividad || !r.rolPropietario) {
-      this.error = 'Completa los datos de tu negocio';
-      return;
-    }
+    if (!this.validarPaso2()) return;
 
-    this.usuarioService.registrar(r).subscribe({
+    this.cargando = true;
+    this.usuarioService.registrar(this.registro).subscribe({
       next: () => {
         this.exito = 'Cuenta y negocio creados exitosamente';
         this.iniciarSesionAutomatico();
       },
       error: () => {
+        this.cargando = false;
         this.error = 'No se pudo registrar. Es posible que el correo ya esté registrado';
       },
     });

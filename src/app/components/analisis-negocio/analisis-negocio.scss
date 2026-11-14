@@ -1,0 +1,114 @@
+svg {
+  flex: none;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.analisis {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.a-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+.a-head h3, h4 { display: flex; align-items: center; gap: 12px; margin: 0; }
+.a-head h3 { font-size: 18px; }
+.a-head h3 svg { width: 20px; height: 20px; color: var(--accent); }
+h4 { font-size: 15px; font-weight: 500; }
+h4 svg { width: 18px; height: 18px; color: var(--accent); }
+
+/* selector de período */
+.pills { display: flex; gap: 4px; padding: 4px; background: var(--bg); border-radius: 999px; }
+.pills button {
+  border: none;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.pills button:hover { color: var(--ink); }
+.pills button.activo { background: var(--accent-hover); color: #fff; }
+
+.graficos { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; }
+.panel-g { border: 1px solid var(--line); border-radius: 12px; padding: 20px; min-width: 0; }
+
+.vacio { text-align: center; color: var(--ink-2); padding: 48px 16px; }
+.vacio.grande { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 56px 24px; max-width: 460px; margin: 0 auto; }
+.vacio.grande svg { width: 36px; height: 36px; color: var(--accent); margin-bottom: 8px; }
+.vacio.grande strong { color: var(--ink); font-size: 16px; }
+
+/* dona */
+.dona-cuerpo { display: flex; align-items: center; gap: 24px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+.dona { position: relative; width: 190px; height: 190px; flex: none; }
+.dona svg { width: 100%; height: 100%; }
+.dona-centro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.dona-centro strong { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+.dona-centro span { font-size: 12px; color: var(--ink-2); }
+
+.cats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; min-width: 160px; }
+.cats li { display: flex; gap: 12px; align-items: flex-start; }
+.cats .punto { margin-top: 6px; }
+.cat-nombre { display: block; font-weight: 500; }
+.cat-valor { display: block; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.punto.ing { background: #3f6a4d; }
+.punto.egr { background: #e8b873; }
+
+/* líneas */
+.lineas-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.leyenda { display: flex; gap: 18px; list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--ink-2); }
+.leyenda li { display: flex; align-items: center; gap: 8px; }
+
+.lineas { position: relative; }
+.lineas svg { width: 100%; height: auto; display: block; stroke: none; }
+
+.grid { stroke: var(--line); stroke-width: 1; }
+.guia { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 3 3; }
+.eje { fill: #8f8f89; font-size: 11px; stroke: none; }
+.hit { fill: transparent; stroke: none; }
+
+.linea { fill: none; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.linea.ing { stroke: #3f6a4d; }
+.linea.egr { stroke: #e8b873; }
+.area { fill: rgba(63, 106, 77, 0.07); stroke: none; }
+.dot { stroke: #fff; stroke-width: 1.5; }
+.dot.ing { fill: #3f6a4d; }
+.dot.egr { fill: #e8b873; }
+
+.tooltip {
+  position: absolute;
+  top: 8px;
+  transform: translateX(12px);
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.tooltip strong { display: block; margin-bottom: 6px; }
+.tooltip div { display: flex; align-items: center; gap: 8px; }
+.tooltip b { font-weight: 600; margin-left: auto; padding-left: 14px; font-variant-numeric: tabular-nums; }
+.tooltip.der { transform: translateX(calc(-100% - 12px)); }
+
+@media (max-width: 1100px) {
+  .graficos { grid-template-columns: 1fr; }
+}
