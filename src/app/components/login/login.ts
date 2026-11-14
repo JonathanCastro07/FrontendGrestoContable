@@ -5,10 +5,11 @@ import { CommonModule } from '@angular/common';
 import { UsuarioService } from '../../services/usuarioService';
 import { NegocioService } from '../../services/NegocioService';
 import { AuthService } from '../../services/AuthService';
+import { AuthPanel } from '../auth-panel/auth-panel';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, RouterLink, CommonModule],
+  imports: [FormsModule, RouterLink, CommonModule, AuthPanel],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
@@ -16,6 +17,8 @@ export class Login {
   correo: string = '';
   password: string = '';
   error: string = '';
+  verPassword = false;
+  cargando = false;
 
   constructor(
     private usuarioService: UsuarioService,
@@ -31,6 +34,7 @@ export class Login {
       return;
     }
 
+    this.cargando = true;
     this.usuarioService.login(this.correo, this.password).subscribe({
       next: (resp) => {
         // Guarda el token y los datos básicos; el interceptor lo envía en cada petición
@@ -38,6 +42,7 @@ export class Login {
         this.cargarNegociosYEntrar();
       },
       error: () => {
+        this.cargando = false;
         this.error = 'Correo o contraseña incorrectos';
       },
     });
@@ -54,6 +59,7 @@ export class Login {
         }
       },
       error: () => {
+        this.cargando = false;
         this.error = 'Error al cargar los negocios';
       },
     });

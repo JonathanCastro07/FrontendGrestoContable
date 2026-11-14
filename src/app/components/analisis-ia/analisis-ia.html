@@ -1,0 +1,60 @@
+<div class="ia-container">
+  <nav class="navbar">
+    <h1>GestroContable</h1>
+    <div class="nav-links">
+    </div>
+  </nav>
+
+  <div class="content">
+    <div class="header">
+      <h2>Análisis financiero con IA</h2>
+      <div class="filtros">
+        <select *ngIf="negocios.length > 1" [(ngModel)]="idNegocio" (ngModelChange)="cambiarNegocio()" aria-label="Negocio">
+          <option *ngFor="let n of negocios" [value]="n.idNegocio">{{ n.nombre }}</option>
+        </select>
+        <select [(ngModel)]="periodo" aria-label="Período a analizar">
+          <option value="semanal">Últimos 7 días</option>
+          <option value="quincenal">Últimos 15 días</option>
+          <option value="mensual">Últimos 30 días</option>
+        </select>
+        <button type="button" class="btn-generar" (click)="generar()" [disabled]="generando || !idNegocio">
+          {{ generando ? 'Analizando…' : '✨ Generar análisis' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+
+    <section class="card destacado" *ngIf="generando">
+      <p class="aviso">La IA está revisando tus movimientos, esto puede tardar unos segundos…</p>
+    </section>
+
+    <section class="card destacado" *ngIf="ultimo && !generando">
+      <div class="card-top">
+        <span class="badge" [ngClass]="alerta(ultimo.tipoAlerta).clase">
+          {{ alerta(ultimo.tipoAlerta).icono }} {{ alerta(ultimo.tipoAlerta).texto }}
+        </span>
+        <span class="fecha">{{ ultimo.fechaGeneracion | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <p class="texto">{{ ultimo.textoGenerado }}</p>
+    </section>
+
+    <h3 class="subtitulo">Historial</h3>
+    <p class="aviso" *ngIf="cargando">Cargando…</p>
+    <p class="aviso" *ngIf="!cargando && historial.length === 0">
+      Aún no hay análisis para este negocio. Pulsa "Generar análisis".
+    </p>
+
+    <section class="card" *ngFor="let a of historial">
+      <div class="card-top">
+        <span class="badge" [ngClass]="alerta(a.tipoAlerta).clase">
+          {{ alerta(a.tipoAlerta).icono }} {{ alerta(a.tipoAlerta).texto }}
+        </span>
+        <span class="fecha">
+          {{ etiquetaPeriodo(a) }}<ng-container *ngIf="etiquetaPeriodo(a)"> · </ng-container>{{ a.fechaGeneracion | date: 'dd/MM/yyyy HH:mm' }}
+        </span>
+      </div>
+      <p class="texto">{{ a.textoGenerado }}</p>
+    </section>
+  </div>
+</div>

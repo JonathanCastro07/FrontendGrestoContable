@@ -1,129 +1,168 @@
-<div class="registro-container">
-  <div class="registro-box">
+<div class="auth">
 
-    <h2>GestroContable</h2>
-    <p class="subtitle">Crea tu cuenta y tu negocio</p>
+  <app-auth-panel></app-auth-panel>
 
+  <main class="auth-lado">
+    <div class="auth-card ancha">
 
-    <div class="error-message" *ngIf="error">
-      {{ error }}
+      <!-- Indicador de progreso -->
+      <ol class="pasos" aria-label="Progreso del registro">
+        <li [class.activo]="paso === 1" [class.hecho]="paso === 2">
+          <span class="num">
+            <svg *ngIf="paso === 2" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg>
+            <ng-container *ngIf="paso === 1">01</ng-container>
+          </span>
+          Tus datos
+        </li>
+        <li class="linea" aria-hidden="true"></li>
+        <li [class.activo]="paso === 2">
+          <span class="num">02</span>
+          Tu negocio
+        </li>
+      </ol>
+
+      <div class="error-message" *ngIf="error">{{ error }}</div>
+      <div class="exito-message" *ngIf="exito">{{ exito }}</div>
+
+      <!-- PASO 1 -->
+      <form *ngIf="paso === 1" class="paso" (ngSubmit)="siguiente()" novalidate>
+
+        <h1>Comencemos contigo</h1>
+        <p class="auth-sub">Ingresa tus datos personales para crear tu cuenta</p>
+
+        <div class="campos">
+
+          <div class="campo" [class.invalido]="errores['nombre']">
+            <label for="nombre">Nombre completo</label>
+            <input id="nombre" name="nombre" type="text" autocomplete="name"
+                   [(ngModel)]="registro.nombre" (input)="quitarError('nombre')"
+                   placeholder="Tu nombre completo"/>
+            <span class="campo-error" *ngIf="errores['nombre']">{{ errores['nombre'] }}</span>
+          </div>
+
+          <div class="campo" [class.invalido]="errores['correo']">
+            <label for="correo">Correo electrónico</label>
+            <input id="correo" name="correo" type="email" autocomplete="email"
+                   [(ngModel)]="registro.correo" (input)="quitarError('correo')"
+                   placeholder="tucorreo@gmail.com"/>
+            <span class="campo-error" *ngIf="errores['correo']">{{ errores['correo'] }}</span>
+          </div>
+
+          <div class="campo">
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" name="telefono" type="text" autocomplete="tel"
+                   [(ngModel)]="registro.telefono" placeholder="3001234567"/>
+          </div>
+
+          <div class="campo" [class.invalido]="errores['password']">
+            <label for="password">Contraseña</label>
+            <div class="password-wrap">
+              <input id="password" name="password" autocomplete="new-password"
+                     [type]="verPassword ? 'text' : 'password'"
+                     [(ngModel)]="registro.password" (input)="quitarError('password')"
+                     placeholder="••••••••"/>
+              <button type="button" class="ojo" (click)="verPassword = !verPassword"
+                      [attr.aria-label]="verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                <svg *ngIf="!verPassword" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg *ngIf="verPassword" viewBox="0 0 24 24"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 8 10 8a17.6 17.6 0 0 1-2.16 3.19M6.61 6.61A17.5 17.5 0 0 0 2 12s3.5 8 10 8a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg>
+              </button>
+            </div>
+            <span class="campo-error" *ngIf="errores['password']">{{ errores['password'] }}</span>
+          </div>
+
+          <div class="campo" [class.invalido]="errores['preguntaSeguridad']">
+            <label for="pregunta">Pregunta de seguridad</label>
+            <input id="pregunta" name="preguntaSeguridad" type="text"
+                   [(ngModel)]="registro.preguntaSeguridad" (input)="quitarError('preguntaSeguridad')"
+                   placeholder="¿Cuál fue tu primera mascota?"/>
+            <span class="campo-error" *ngIf="errores['preguntaSeguridad']">{{ errores['preguntaSeguridad'] }}</span>
+          </div>
+
+          <div class="campo" [class.invalido]="errores['respuestaSeguridad']">
+            <label for="respuesta">Respuesta de seguridad</label>
+            <input id="respuesta" name="respuestaSeguridad" type="text"
+                   [(ngModel)]="registro.respuestaSeguridad" (input)="quitarError('respuestaSeguridad')"
+                   placeholder="Tu respuesta secreta"/>
+            <span class="campo-error" *ngIf="errores['respuestaSeguridad']">{{ errores['respuestaSeguridad'] }}</span>
+          </div>
+
+        </div>
+
+        <div class="auth-acciones">
+          <button type="submit" class="btn-guardar">Siguiente</button>
+        </div>
+      </form>
+
+      <!-- PASO 2 -->
+      <form *ngIf="paso === 2" class="paso" (ngSubmit)="registrar()" novalidate>
+
+        <h1>Cuéntanos sobre tu negocio</h1>
+        <p class="auth-sub">Configura la información inicial de tu negocio</p>
+
+        <div class="campos">
+
+          <div class="campo completo" [class.invalido]="errores['nombreNegocio']">
+            <label for="nombreNegocio">Nombre del negocio</label>
+            <input id="nombreNegocio" name="nombreNegocio" type="text"
+                   [(ngModel)]="registro.nombreNegocio" (input)="quitarError('nombreNegocio')"
+                   placeholder="Ej: Tienda La Esperanza"/>
+            <span class="campo-error" *ngIf="errores['nombreNegocio']">{{ errores['nombreNegocio'] }}</span>
+          </div>
+
+          <div class="campo" [class.invalido]="errores['tipoActividad']">
+            <label for="tipoActividad">Tipo de actividad</label>
+            <select id="tipoActividad" name="tipoActividad"
+                    [(ngModel)]="registro.tipoActividad" (ngModelChange)="quitarError('tipoActividad')">
+              <option value="">-- Selecciona --</option>
+              <option value="Comercio">Comercio</option>
+              <option value="Servicios">Servicios</option>
+              <option value="Manufactura">Manufactura</option>
+              <option value="Restaurante">Restaurante</option>
+              <option value="Tecnología">Tecnología</option>
+              <option value="Educación">Educación</option>
+              <option value="Salud">Salud</option>
+              <option value="Otro">Otro</option>
+            </select>
+            <span class="campo-error" *ngIf="errores['tipoActividad']">{{ errores['tipoActividad'] }}</span>
+          </div>
+
+          <div class="campo" [class.invalido]="errores['rolPropietario']">
+            <label for="rol">Rol dentro del negocio</label>
+            <select id="rol" name="rolPropietario"
+                    [(ngModel)]="registro.rolPropietario" (ngModelChange)="quitarError('rolPropietario')">
+              <option value="">-- Selecciona --</option>
+              <option value="Propietario">Propietario</option>
+              <option value="Administrador">Administrador</option>
+              <option value="Contador">Contador</option>
+              <option value="Socio">Socio</option>
+            </select>
+            <span class="campo-error" *ngIf="errores['rolPropietario']">{{ errores['rolPropietario'] }}</span>
+          </div>
+
+          <div class="campo completo" [class.invalido]="errores['capitalInicial']">
+            <label for="capital">Capital inicial</label>
+            <input id="capital" name="capitalInicial" type="number" min="0"
+                   [(ngModel)]="registro.capitalInicial" (input)="quitarError('capitalInicial')"
+                   placeholder="0"/>
+            <span class="campo-error" *ngIf="errores['capitalInicial']">{{ errores['capitalInicial'] }}</span>
+          </div>
+
+        </div>
+
+        <div class="auth-acciones">
+          <button type="button" class="btn-cancelar" (click)="volver()" [disabled]="cargando">Volver</button>
+          <button type="submit" class="btn-guardar" [disabled]="cargando">
+            {{ cargando ? 'Creando cuenta…' : 'Crear cuenta' }}
+          </button>
+        </div>
+      </form>
+
+      <p class="auth-link">
+        ¿Ya tienes cuenta?
+        <a routerLink="/login">Inicia sesión aquí</a>
+      </p>
+
     </div>
+  </main>
 
-
-    <div class="exito-message" *ngIf="exito">
-      {{ exito }}
-    </div>
-
-    <h3 class="seccion-titulo">Tus datos</h3>
-
-    <div class="form-group">
-      <label>Nombre</label>
-      <input
-        type="text"
-        [(ngModel)]="registro.nombre"
-        placeholder="Tu nombre completo"
-      />
-    </div>
-
-    <div class="form-group">
-      <label>Correo</label>
-      <input
-        type="email"
-        [(ngModel)]="registro.correo"
-        placeholder="tucorreo@gmail.com"
-      />
-    </div>
-
-    <div class="form-group">
-      <label>Teléfono</label>
-      <input
-        type="text"
-        [(ngModel)]="registro.telefono"
-        placeholder="3001234567"
-      />
-    </div>
-
-    <div class="form-group">
-      <label>Contraseña</label>
-      <input
-        type="password"
-        [(ngModel)]="registro.password"
-        placeholder="••••••••"
-      />
-    </div>
-
-    <div class="form-group">
-      <label>Pregunta de seguridad</label>
-      <input
-        type="text"
-        [(ngModel)]="registro.preguntaSeguridad"
-        placeholder="¿Cuál fue tu primera mascota?"
-      />
-    </div>
-
-    <div class="form-group">
-      <label>Respuesta de seguridad</label>
-      <input
-        type="text"
-        [(ngModel)]="registro.respuestaSeguridad"
-        placeholder="Tu respuesta secreta"
-      />
-    </div>
-
-    <h3 class="seccion-titulo">Tu negocio</h3>
-
-    <div class="form-group">
-      <label>Nombre del negocio</label>
-      <input
-        type="text"
-        [(ngModel)]="registro.nombreNegocio"
-        placeholder="Ej: Tienda La Esperanza"
-      />
-    </div>
-
-    <div class="form-group">
-      <label>Tipo de actividad</label>
-      <select [(ngModel)]="registro.tipoActividad">
-        <option value="">-- Selecciona --</option>
-        <option value="Comercio">Comercio</option>
-        <option value="Servicios">Servicios</option>
-        <option value="Manufactura">Manufactura</option>
-        <option value="Restaurante">Restaurante</option>
-        <option value="Tecnología">Tecnología</option>
-        <option value="Educación">Educación</option>
-        <option value="Salud">Salud</option>
-        <option value="Otro">Otro</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>¿Cuál es tu rol en el negocio?</label>
-      <select [(ngModel)]="registro.rolPropietario">
-        <option value="">-- Selecciona --</option>
-        <option value="Propietario">Propietario</option>
-        <option value="Administrador">Administrador</option>
-        <option value="Contador">Contador</option>
-        <option value="Socio">Socio</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>Capital inicial</label>
-      <input
-        type="number"
-        [(ngModel)]="registro.capitalInicial"
-        placeholder="0"
-      />
-    </div>
-
-    <button class="btn-registro" (click)="registrar()">
-      Registrarse
-    </button>
-
-    <p class="login-link">
-      ¿Ya tienes cuenta?
-      <a routerLink="/login">Inicia sesión aquí</a>
-    </p>
-
-  </div>
 </div>

@@ -1,0 +1,52 @@
+<div class="content">
+  <div class="header">
+    <h2>Reporte mensual</h2>
+    <div class="filtros">
+      <select *ngIf="negocios.length > 1" [(ngModel)]="idNegocio" (ngModelChange)="cargar()" aria-label="Negocio">
+        <option *ngFor="let n of negocios" [value]="n.idNegocio">{{ n.nombre }}</option>
+      </select>
+      <select [(ngModel)]="mes" (ngModelChange)="aplicar()" aria-label="Mes">
+        <option *ngFor="let m of meses; let i = index" [ngValue]="i + 1">{{ m }}</option>
+      </select>
+      <select [(ngModel)]="anio" (ngModelChange)="aplicar()" aria-label="Año">
+        <option *ngFor="let a of anios" [ngValue]="a">{{ a }}</option>
+      </select>
+      <button type="button" class="btn-pdf" (click)="descargarPdf()" [disabled]="cargando || !idNegocio">
+        Descargar PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="error-message" *ngIf="error">{{ error }}</div>
+  <p class="aviso" *ngIf="cargando">Cargando…</p>
+
+  <ng-container *ngIf="!cargando && idNegocio">
+    <div class="kpis">
+      <div class="kpi"><span>Ingresos</span><strong>{{ moneda(resumen.ingresos) }}</strong></div>
+      <div class="kpi"><span>Egresos</span><strong>{{ moneda(resumen.egresos) }}</strong></div>
+      <div class="kpi"><span>Gastos</span><strong>{{ moneda(resumen.gastos) }}</strong></div>
+      <div class="kpi"><span>Utilidad</span><strong [class.neg]="resumen.utilidad < 0">{{ moneda(resumen.utilidad) }}</strong></div>
+    </div>
+
+    <section class="card">
+      <h3>Movimientos de {{ meses[mes - 1] }} {{ anio }} ({{ delMes.length }})</h3>
+      <p class="aviso" *ngIf="delMes.length === 0">No hay movimientos en este mes.</p>
+      <div class="tabla-wrap" *ngIf="delMes.length > 0">
+        <table>
+          <thead>
+            <tr><th>Fecha</th><th>Tipo</th><th>Origen</th><th>Descripción</th><th class="num">Monto</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of delMes">
+              <td>{{ m.fecha | date: 'dd/MM/yyyy' }}</td>
+              <td><span class="tag" [attr.data-tipo]="m.tipoMovimiento.nombre">{{ m.tipoMovimiento.nombre }}</span></td>
+              <td>{{ m.origen.nombre }}</td>
+              <td>{{ m.descricion }}</td>
+              <td class="num">{{ moneda(m.monto) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+</div>
