@@ -12,6 +12,7 @@ import { NaturalezaMovimiento } from '../../models/tipo-movimiento';
 import { TipoOrigen } from '../../models/origen';
 import { NegocioResponse } from '../../models/negocio';
 import { AuthService } from '../../services/AuthService';
+import { ToastService } from '../../services/ToastService';
 
 @Component({
   selector: 'app-pagos-periodicos',
@@ -46,7 +47,8 @@ export class PagosPeriodicos implements OnInit {
   constructor(
     private pagoPeriodicoService: PagoPeriodicoService,
     private auth: AuthService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -132,14 +134,12 @@ export class PagosPeriodicos implements OnInit {
     this.exito = '';
     this.pagoPeriodicoService.ejecutar(id).subscribe({
       next: () => {
-        this.exito = 'Pago ejecutado: se generó el movimiento';
+        this.toast.exito('Pago ejecutado: movimiento generado con éxito');
         this.cargarPagos();
-        this.cd.detectChanges();
       },
       error: (err: HttpErrorResponse) => {
         console.error('Error al ejecutar el pago', err);
-        this.error = `Error al ejecutar el pago (código ${err.status})`;
-        this.cd.detectChanges();
+        this.toast.error(`Error al ejecutar el pago (código ${err.status})`);
       }
     });
   }

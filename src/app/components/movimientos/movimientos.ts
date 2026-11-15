@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -11,6 +11,7 @@ import {
 import { NegocioResponse } from '../../models/negocio';
 import { TipoOrigen } from '../../models/origen';
 import { NaturalezaMovimiento } from '../../models/tipo-movimiento';
+import { ToastService } from '../../services/ToastService';
 
 @Component({
   selector: 'app-movimientos',
@@ -46,7 +47,9 @@ export class Movimientos implements OnInit {
 
   constructor(
     private movimientoService: MovimientoService,
-    private negocioService: NegocioService
+    private negocioService: NegocioService,
+    private toast: ToastService,
+    private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -69,8 +72,11 @@ export class Movimientos implements OnInit {
   cargarMovimientos() {
     if (!this.idNegocioSeleccionado) return;
     this.movimientoService.listarPorNegocio(this.idNegocioSeleccionado).subscribe({
-      next: (data) => this.movimientos = data,
-      error: () => this.error = 'Error al cargar movimientos'
+      next: (data) => {
+        this.movimientos = data;
+        this.cd.detectChanges();
+      },
+      error: () => this.toast.error('Error al cargar movimientos')
     });
   }
 
@@ -145,12 +151,13 @@ export class Movimientos implements OnInit {
 
     this.movimientoService.registrarMovimiento(movimiento).subscribe({
       next: () => {
-        this.exito = 'Movimiento registrado exitosamente';
+        this.toast.exito('Movimiento generado con éxito');
         this.mostrarFormulario = false;
         this.resetFormulario();
         this.cargarMovimientos();
+        this.cd.detectChanges();
       },
-      error: () => this.error = 'Error al registrar el movimiento'
+      error: () => this.toast.error('Error al registrar el movimiento')
     });
   }
 

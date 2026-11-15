@@ -1,7 +1,7 @@
 {
   "outputDirectory": "dist/GestroContableFrontend/browser",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://offshore-editorial-beef-strictly.trycloudflare.com/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://consequently-were-polished-clicking.trycloudflare.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

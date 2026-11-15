@@ -1,0 +1,9 @@
+<div class="toast-contenedor" aria-live="polite">
+  @for (t of toast.toasts(); track t.id) {
+    <div class="toast" [class.toast-exito]="t.tipo === 'exito'" [class.toast-error]="t.tipo === 'error'" role="status">
+      <span class="toast-icono">{{ t.tipo === 'exito' ? '✓' : '!' }}</span>
+      <span class="toast-mensaje">{{ t.mensaje }}</span>
+      <button class="toast-cerrar" type="button" (click)="toast.cerrar(t.id)" aria-label="Cerrar">×</button>
+    </div>
+  }
+</div>
