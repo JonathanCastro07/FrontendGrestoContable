@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -44,7 +45,8 @@ export class PagosPeriodicos implements OnInit {
 
   constructor(
     private pagoPeriodicoService: PagoPeriodicoService,
-    private auth: AuthService
+    private auth: AuthService,
+    private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -58,8 +60,14 @@ export class PagosPeriodicos implements OnInit {
   cargarPagos() {
     if (!this.idNegocio) return;
     this.pagoPeriodicoService.listarPorNegocio(this.idNegocio).subscribe({
-      next: (data) => this.pagos = data,
-      error: () => this.error = 'Error al cargar los pagos periódicos'
+      next: (data) => {
+        this.pagos = data;
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.error = 'Error al cargar los pagos periódicos';
+        this.cd.detectChanges();
+      }
     });
   }
 
@@ -120,12 +128,19 @@ export class PagosPeriodicos implements OnInit {
   }
 
   ejecutar(id: string) {
+    this.error = '';
+    this.exito = '';
     this.pagoPeriodicoService.ejecutar(id).subscribe({
       next: () => {
         this.exito = 'Pago ejecutado: se generó el movimiento';
         this.cargarPagos();
+        this.cd.detectChanges();
       },
-      error: () => this.error = 'Error al ejecutar el pago'
+      error: (err: HttpErrorResponse) => {
+        console.error('Error al ejecutar el pago', err);
+        this.error = `Error al ejecutar el pago (código ${err.status})`;
+        this.cd.detectChanges();
+      }
     });
   }
 
