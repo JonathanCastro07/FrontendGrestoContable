@@ -1,7 +1,7 @@
 {
   "outputDirectory": "dist/GestroContableFrontend/browser",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://reid-mattress-furnishings-maintains.trycloudflare.com/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://complexity-homeland-guide-essex.trycloudflare.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
